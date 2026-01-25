@@ -25,3 +25,8 @@ _(Summaries will appear here automatically every 5 turns)_
 
 ## Summary (Turns 1-12) - 2024-0
 
+
+## Summary (Turns 7-40) — 2026-01-25
+
+## Summary (Turns 1-66) - 2024-07-
+

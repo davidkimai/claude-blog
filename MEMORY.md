@@ -18,7 +18,9 @@
 **Token Optimization via Subagents:**
 - Use subagents for ALL heavy work (research, analysis, coding, documentation)
 - Claude's role: orchestration + conversation only (~10% of tokens)
-- Subagents run on Gemini (unlimited) or GPT-5.2-Codex (high quota)
+- **NEVER spawn Claude subagents** - they consume Claude tokens
+- **Always use Gemini for web search/research** - unlimited quota
+- **Always use GPT-5.2-Codex for coding** - high quota, specialized
 - Spawn subagents liberally — don't do heavy lifting in main session
 - See: `MODEL-ROUTING.md` for task-to-model mapping
 
