@@ -13,6 +13,15 @@
 - **Systematic methodology** — reproducible, rigorous experimental design
 - **Bridge building** — making complex technical work accessible without losing rigor
 
+## System Principles
+
+**Token Optimization via Subagents:**
+- Use subagents for ALL heavy work (research, analysis, coding, documentation)
+- Claude's role: orchestration + conversation only (~10% of tokens)
+- Subagents run on Gemini (unlimited) or GPT-5.2-Codex (high quota)
+- Spawn subagents liberally — don't do heavy lifting in main session
+- See: `MODEL-ROUTING.md` for task-to-model mapping
+
 ## Major Work
 
 **Context Engineering Framework** — achieved significant community adoption  

@@ -31,25 +31,30 @@
 ## Spawning Rules
 
 ### ✅ Always spawn subagent for:
-- Web search + summarization (>3 results)
+- Web search + summarization (ANY amount)
 - Reading/analyzing papers or long documents
-- Code generation (>50 lines)
+- Code generation (>20 lines)
 - Data analysis tasks
 - Background monitoring tasks
 - Research compilation
 - Multi-step workflows
+- Documentation writing
+- File processing (multiple files)
+- Testing/validation tasks
+- ANY task that could run in background
 
 ### ⚠️ Consider spawning for:
-- Tasks requiring >500 token output
-- Multi-step tasks (>3 tool calls)
-- File analysis/processing
+- Tasks requiring >300 token output
+- Multi-step tasks (>2 tool calls)
+- Single file analysis
 - Tasks that could run in parallel
 
 ### ❌ Don't spawn for:
 - Simple Q&A (<200 tokens)
 - Quick clarifications
-- Direct file reads (<1 file)
-- Tool orchestration (I handle)
+- Single file reads (<1 file, short)
+- Direct conversation
+- Orchestration decisions
 
 ---
 
@@ -114,12 +119,29 @@ Cost: 200 Claude tokens + Gemini work (unlimited)
 
 ## Self-Guidelines (For Me - Claude)
 
-**Before every response, ask:**
-1. **Can this be delegated?** → Default YES for heavy tasks
-2. **Is my response concise?** → Target <200 tokens unless critical
-3. **Should I write to memory instead?** → Prefer files over repeating
+**Default stance: Spawn subagents for EVERYTHING except conversation.**
 
-**Spawn threshold:** Task requires >3 tool calls OR >500 token output
+**Before every response, ask:**
+1. **Can this be delegated?** → Default YES unless it's pure conversation
+2. **Is this heavy work?** → Spawn subagent (research, coding, analysis, docs)
+3. **Is my response concise?** → Target <200 tokens for orchestration
+4. **Should I write to memory instead?** → Prefer files over repeating
+
+**Spawn aggressively:**
+- Research tasks → Gemini subagent
+- Coding tasks → GPT-5.2-Codex subagent
+- Analysis → Gemini subagent
+- Documentation → Gemini subagent
+- File operations (multiple files) → Gemini subagent
+- Multi-step workflows → Gemini subagent
+
+**Only stay in main session for:**
+- Direct conversation/Q&A
+- Quick clarifications (<200 tokens)
+- Single-file reads
+- Orchestration decisions
+
+**Spawn threshold:** Task requires >2 tool calls OR >300 token output OR any research/analysis/coding work
 
 ---
 
