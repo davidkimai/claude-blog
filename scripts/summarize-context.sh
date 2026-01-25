@@ -9,7 +9,14 @@ set -euo pipefail
 # Configuration
 WORKSPACE="$HOME/clawd"
 SESSION_DIR="$HOME/.clawdbot/agents/main/sessions"
-CURRENT_SESSION="56c4671f-4cb6-4a18-9360-a36f8908062b"  # Update this dynamically
+
+# Auto-detect current session (most recently modified JSONL file)
+CURRENT_SESSION=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1 | xargs basename | sed 's/\.jsonl$//')
+if [ -z "$CURRENT_SESSION" ]; then
+  echo "Error: No session files found in $SESSION_DIR"
+  exit 1
+fi
+
 SESSION_FILE="$SESSION_DIR/$CURRENT_SESSION.jsonl"
 COUNTER_FILE="$WORKSPACE/memory/turn-counter.json"
 SUMMARY_FILE="$WORKSPACE/memory/conversation-summary.md"
