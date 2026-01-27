@@ -1,0 +1,2 @@
+{"timestamp":"2026-01-27T04:29:23.365Z","status":"unknown","reason":"No progress tracking data available","patterns":["waiting_verification","dependency_wait"],"timeSinceProgressMinutes":0}
+{"timestamp":"2026-01-27T04:30:11.301Z","status":"unknown","reason":"No progress tracking data available","patterns":["unclear_requirements","waiting_verification","dependency_wait"],"timeSinceProgressMinutes":0}

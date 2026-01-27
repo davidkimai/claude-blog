@@ -193,7 +193,37 @@ const DEFAULT_CONFIG = {
 
 ## Integration Workflows
 
-### Option 1: Manual Spawn + Monitor
+### ⭐ Option 1: CLI Wrapper (Recommended for Claude)
+**Best for:** Claude using `exec` tool
+
+```bash
+./scripts/spawn-monitored.sh "task-label" "task description" "model-name"
+```
+
+This automatically:
+- Spawns subagent via `clawdbot sessions spawn`
+- Extracts session key from response
+- Launches monitor in background
+- Logs spawn info for tracking
+
+**Check notifications:**
+```bash
+./scripts/check-notifications.sh
+```
+
+**Check status:**
+```bash
+./scripts/monitor-status.sh
+```
+
+**Stop monitors:**
+```bash
+./scripts/stop-monitors.sh [PID]
+```
+
+See `CLAUDE-SUBAGENT-WORKFLOW.md` for complete Claude usage guide.
+
+### Option 2: Manual Spawn + Monitor
 ```bash
 # 1. Spawn subagent (existing workflow)
 # ... use existing spawn method ...
@@ -202,7 +232,7 @@ const DEFAULT_CONFIG = {
 node scripts/subagent-monitor.js agent:main:subagent:abc123
 ```
 
-### Option 2: Automatic Spawn + Monitor (Recommended)
+### Option 3: Programmatic Spawn + Monitor
 ```javascript
 // Replace existing spawn calls with:
 const { spawnWithMonitoring } = require('./scripts/spawn-with-monitoring.js');
@@ -212,12 +242,12 @@ await spawnWithMonitoring('task-label', 'task description', {
 });
 ```
 
-### Option 3: Heartbeat Integration
+### Option 4: Heartbeat Integration
 Update `HEARTBEAT.md` to check notifications:
 
 ```bash
 # Add to heartbeat script
-node scripts/check-subagent-notifications.js
+./scripts/check-notifications.sh
 
 # If notifications exist, they'll be displayed
 # The main agent can then relay them to Telegram
@@ -232,9 +262,12 @@ node scripts/check-subagent-notifications.js
 - **Sessions data:** `~/.clawdbot/agents/main/sessions/sessions.json`
 
 ### Scripts
-- **Monitor:** `scripts/subagent-monitor.js`
-- **Spawn wrapper:** `scripts/spawn-with-monitoring.js`
-- **Check notifications:** `scripts/check-subagent-notifications.js`
+- **Monitor:** `scripts/subagent-monitor.js` (core monitoring engine)
+- **Spawn wrapper (Node):** `scripts/spawn-with-monitoring.js` (programmatic API)
+- **Spawn wrapper (CLI):** `scripts/spawn-monitored.sh` ⭐ **Use this from Claude**
+- **Check notifications:** `scripts/check-notifications.sh` ⭐ **Use this from Claude**
+- **Monitor status:** `scripts/monitor-status.sh` (check active monitors)
+- **Stop monitors:** `scripts/stop-monitors.sh` (cleanup)
 
 ## Monitoring Active Monitors
 
@@ -282,16 +315,84 @@ Adjust configuration:
 - Can run 10+ monitors simultaneously without issue
 - Each monitor is independent and lightweight
 
+## For Claude's Use
+
+After spawning a subagent with sessions_spawn or similar:
+
+### Quick Workflow:
+1. Extract `sessionKey` from spawn response
+2. Run: `./scripts/spawn-with-monitor.sh <sessionKey>`
+3. Monitoring starts automatically in background
+
+### Example:
+```bash
+# After spawning a subagent (extract the sessionKey from response)
+SESSION_KEY="agent:main:subagent:abc123"
+
+# Start monitoring
+./scripts/spawn-with-monitor.sh "$SESSION_KEY"
+# Output: Monitor started for agent:main:subagent:abc123 (PID: 12345)
+```
+
+### Checking Notifications:
+Add to heartbeat checks (every 2-3 heartbeats):
+```bash
+# Check for new notifications
+./scripts/check-notifications.sh
+```
+
+This replaces the old slow `subagent-dashboard.sh` approach with real-time updates!
+
+---
+
+## Claude Integration (COMPLETE ✅)
+
+**Date Integrated:** 2025-01-25
+
+The monitoring system is fully integrated into Claude's workflow via CLI wrappers:
+
+### For Claude Users:
+1. **Spawn subagent with monitoring:** `./scripts/spawn-monitored.sh "label" "task" "model"`
+2. **Check updates:** `./scripts/check-notifications.sh`
+3. **View status:** `./scripts/monitor-status.sh`
+4. **Stop monitors:** `./scripts/stop-monitors.sh`
+
+### Quick Reference:
+See `CLAUDE-QUICKREF.md` for one-page command reference.
+
+### Complete Guide:
+See `CLAUDE-SUBAGENT-WORKFLOW.md` for full workflow documentation with examples.
+
+### How It Works:
+1. Claude calls `./scripts/spawn-monitored.sh` via `exec` tool
+2. Script spawns subagent using `clawdbot sessions spawn`
+3. Extracts session key from JSON response
+4. Launches `subagent-monitor.js` in background
+5. Monitor writes notifications to `~/.clawdbot/agents/main/notifications.jsonl`
+6. Claude checks notifications via `./scripts/check-notifications.sh` in heartbeats
+7. Notifications are automatically marked as read after each check
+8. Monitor auto-terminates when subagent completes
+
+### Benefits:
+- ✅ No manual monitoring needed
+- ✅ Real-time updates every ~35 seconds
+- ✅ Automatic milestone detection
+- ✅ Simple integration via exec tool
+- ✅ Minimal resource usage (~0.1% CPU per monitor)
+- ✅ Auto-cleanup on completion
+
 ## Future Enhancements
 
 Potential improvements:
 - [ ] WebSocket support for instant updates (no polling)
-- [ ] Integration with Clawdbot's native `sessions_send` API
+- [ ] Integration with Clawdbot's native `sessions_send` API for direct notifications
 - [ ] Web dashboard for visualizing active subagents
 - [ ] Notification filtering (only critical milestones)
 - [ ] Slack/Discord integration
 - [ ] Token burn rate tracking (tokens/minute)
 - [ ] Estimated completion time prediction
+- [ ] Multi-session monitoring dashboard
+- [ ] Alert thresholds (e.g., notify if running >10 min)
 
 ## Testing
 
