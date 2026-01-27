@@ -64,6 +64,103 @@ Never do heavy lifting in the main session. Always spawn a subagent.
 
 ---
 
+## Subagent Spawning Strategy 🚀
+
+### Be Liberal with Spawning
+**Spawn a subagent for EVERY task that requires:**
+- More than 5 minutes of focused work
+- Code writing, editing, or debugging
+- File operations beyond simple reads
+- Research or investigation
+- Multi-step workflows
+- Anything that could benefit from dedicated context
+
+**Atomic Task Design:**
+- Each subagent should have ONE clear objective
+- Keep prompts focused and specific
+- Include success criteria in the task description
+- Provide relevant context (file paths, requirements, constraints)
+- Set appropriate timeout based on task complexity
+
+**Monitoring Active Subagents:**
+- Use `sessions_list` to check subagent status
+- Monitor progress during heartbeats (every ~30 sec when subagents are running)
+- Report completions, completions with issues, or failures
+- For long-running tasks (>5 min), alert when milestones complete
+
+### Examples of When to Spawn
+
+| Task | Spawn? | Reason |
+|------|--------|--------|
+| "Fix this bug" | ✅ Yes | Focused debugging |
+| "Build a new feature" | ✅ Yes | Multi-step implementation |
+| "Research X" | ✅ Yes | Investigation needs dedicated context |
+| "Write this file" | ✅ Yes | Code generation |
+| "Summarize this" | ❌ No | Light task, main session can handle |
+| "Read this file" | ❌ No | Simple operation |
+| "List files" | ❌ No | Simple operation |
+
+---
+
+### Expert Role Prompting for Subagents
+
+**Maximize success by tailoring the subagent's role/expertise to the task:**
+
+**For each subagent, include in the task description:**
+1. **Expert Role** - What specialist perspective should it have?
+   - "Act as a senior security researcher"
+   - "You are a TypeScript performance expert"
+   - "Approach this as a UX architect"
+
+2. **Context & Constraints** - Relevant files, patterns, existing code
+   - "Read X before starting"
+   - "Follow the patterns in Y"
+   - "Do not deviate from Z architecture"
+
+3. **Success Criteria** - How does it know it succeeded?
+   - "Task is complete when..."
+   - "Passes these tests: ..."
+   - "Verify by checking that..."
+
+4. **Output Format** - Structured results for easy parsing
+   - "Return JSON with: ..."
+   - "Summarize findings in: bullet points"
+   - "List files changed"
+
+**Example Prompts:**
+
+❌ Weak:
+```
+"Fix the auth bug"
+```
+
+✅ Strong:
+```
+"Fix the auth bug in skills/better-auth/
+
+Role: You are a security-focused backend engineer
+Context: Read SKILL.md and existing auth patterns first
+Success: All tests pass, no regressions
+Output: List files changed, explain the fix
+
+DO: Follow existing code patterns, test thoroughly
+DON'T: Rewrite unrelated code, skip tests
+```
+
+**Role Templates by Task Type:**
+
+| Task Type | Expert Role | Example |
+|-----------|-------------|---------|
+| Security audit | "Security researcher with red team experience" | Find vulnerabilities |
+| Performance | "Performance engineer specializing in Node.js" | Optimize bottlenecks |
+| UX/UI | "Product designer focused on usability" | Design interfaces |
+| API design | "Backend architect with REST/GraphQL expertise" | Design endpoints |
+| Testing | "QA engineer who catches edge cases" | Write comprehensive tests |
+| Refactoring | "Senior dev focused on code clarity" | Improve without breaking |
+| Research | "Domain expert synthesizing information" | Gather and analyze |
+
+---
+
 ## The Scientific Method 🧪
 
 **For every bug fix or optimization task, you must follow this protocol:**
