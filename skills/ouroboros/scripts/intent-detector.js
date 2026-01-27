@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Ouroboros Intent Detector (v0.3 - Self-Improved)
+ * Ouroboros Intent Detector (v0.4 - Self-Improved + Phase 4)
  * 
  * Multi-layer intent detection with self-improvement:
- * - Layer 1: Fast keyword/pattern matching
+ * - Layer 1: Fast keyword/pattern matching (with calibration)
  * - Layer 2: Entity extraction
- * - Layer 3: LLM classification (fallback)
+ * - Layer 3: LLM classification (fallback with borderline logic)
  * - Self-learning from feedback and decisions
+ * - Cross-workflow integration
  * 
  * Usage:
  *   node intent-detector.js "Build a React auth system"
@@ -20,6 +21,9 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
+
+// Scripts directory for Phase 4 modules
+const SCRIPTS_DIR = path.join(__dirname, '.');
 
 // Simple LRU cache implementation
 class LRUCache {
@@ -292,18 +296,37 @@ function detectCompoundIntent(message) {
 }
 
 /**
- * Layer 1: Fast keyword/pattern matching (IMPROVED with boosting)
+ * Load calibration weights (Phase 4 - Pattern Calibration)
+ */
+function loadCalibrationWeights() {
+  try {
+    const calibrationPath = path.join(SCRIPTS_DIR, '../memory/pattern-calibration.json');
+    if (fs.existsSync(calibrationPath)) {
+      const calibration = JSON.parse(fs.readFileSync(calibrationPath, 'utf8'));
+      return calibration.patternWeights || {};
+    }
+  } catch (err) {
+    // Use defaults
+  }
+  return {};
+}
+
+/**
+ * Layer 1: Fast keyword/pattern matching (IMPROVED with boosting + calibration)
  */
 function fastMatch(message) {
   const scores = {};
   const matchedPatterns = [];
+  const calibrationWeights = loadCalibrationWeights();
   
   // Score each intent based on pattern matches
   for (const [intent, patterns] of Object.entries(PATTERNS)) {
     let score = 0;
     for (const pattern of patterns) {
       if (pattern.test(message)) {
-        score += 20;
+        const patternName = pattern.toString().slice(1, -1); // Extract pattern name from regex
+        const weight = calibrationWeights[patternName] || 20;
+        score += weight;
         matchedPatterns.push(intent);
       }
     }
@@ -380,16 +403,167 @@ function extractEntities(message) {
 }
 
 /**
- * Map intent + entities to workflow (IMPROVED)
+ * Detect project type from message (Phase 4 - Cross-Workflow Integration)
  */
-function selectWorkflow(intent, entities, confidence) {
-  const complexity = entities.complexity || 'medium';
+function detectProjectType(message) {
+  const lowerMessage = (message || '').toLowerCase();
+  const entities = extractEntities(message);
+  const frameworks = entities.frameworks || [];
   
-  // Low confidence → clarify (Proposal #5: Lowered threshold)
-  if (confidence < 40) {
+  // Framework-based detection
+  const frameworkToType = {
+    'React': 'web_frontend',
+    'Vue': 'web_frontend',
+    'Angular': 'web_frontend',
+    'Next.js': 'fullstack',
+    'Express': 'web_backend',
+    'Fastify': 'web_backend',
+    'Node.js': 'web_backend',
+    'Python': 'data',
+    'Go': 'web_backend',
+    'Commander': 'cli',
+    'Oclif': 'cli',
+    'Docker': 'infrastructure',
+    'Kubernetes': 'infrastructure',
+  };
+  
+  for (const framework of frameworks) {
+    if (frameworkToType[framework]) {
+      return frameworkToType[framework];
+    }
+  }
+  
+  // Keyword-based detection
+  const typeIndicators = {
+    'web_frontend': ['frontend', 'ui', 'website', 'web app', 'spa'],
+    'web_backend': ['backend', 'api', 'server', 'service'],
+    'fullstack': ['fullstack', 'full-stack', 'full stack'],
+    'cli': ['cli', 'command line', 'terminal', 'tool'],
+    'library': ['library', 'package', 'sdk', 'module'],
+    'infrastructure': ['infrastructure', 'deployment', 'docker', 'terraform'],
+    'data': ['data', 'pipeline', 'analysis', 'etl'],
+  };
+  
+  for (const [type, indicators] of Object.entries(typeIndicators)) {
+    if (indicators.some(ind => lowerMessage.includes(ind))) {
+      return type;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Get calibration thresholds (Phase 4 - Pattern Calibration)
+ */
+function getCalibrationThresholds() {
+  try {
+    const calibrationPath = path.join(SCRIPTS_DIR, '../memory/pattern-calibration.json');
+    if (fs.existsSync(calibrationPath)) {
+      const calibration = JSON.parse(fs.readFileSync(calibrationPath, 'utf8'));
+      return calibration.thresholds || {
+        veryLow: 30,
+        low: 45,
+        borderline: 55,
+        high: 75,
+        veryHigh: 90,
+        llmFallback: 55,
+      };
+    }
+  } catch (err) {
+    // Use defaults
+  }
+  return {
+    veryLow: 30,
+    low: 45,
+    borderline: 55,
+    high: 75,
+    veryHigh: 90,
+    llmFallback: 55,
+  };
+}
+
+/**
+ * Get best workflow from cross-workflow learning (Phase 4)
+ */
+function getCrossWorkflowSuggestion(intent, projectType) {
+  try {
+    const projectPatternsPath = path.join(SCRIPTS_DIR, '../memory/project-patterns.json');
+    if (fs.existsSync(projectPatternsPath)) {
+      const patterns = JSON.parse(fs.readFileSync(projectPatternsPath, 'utf8'));
+      
+      if (projectType && patterns.patterns?.[projectType]) {
+        const projectPattern = patterns.patterns[projectType];
+        
+        // Check if intent is typical for this project type
+        if (projectPattern.typicalIntents?.includes(intent)) {
+          return {
+            workflow: projectPattern.bestWorkflow,
+            source: 'project_pattern',
+            reason: 'Based on project type patterns',
+            gsdFirst: projectPattern.gsdFirst,
+          };
+        }
+      }
+      
+      // Check cross-workflow learning
+      const relevant = patterns.crossWorkflowPatterns?.filter(
+        p => p.projectType === projectType && p.intent === intent
+      ) || [];
+      
+      if (relevant.length > 0) {
+        const sorted = relevant.sort((a, b) => (b.successes / b.total) - (a.successes / a.total));
+        return {
+          workflow: sorted[0].workflow,
+          source: 'cross_workflow_learning',
+          reason: `Based on ${sorted[0].total} previous uses with ${(sorted[0].successes / sorted[0].total * 100).toFixed(0)}% success`,
+          confidence: sorted[0].total >= 3 ? 'high' : sorted[0].total >= 1 ? 'medium' : 'low',
+        };
+      }
+    }
+  } catch (err) {
+    // Ignore errors
+  }
+  return null;
+}
+
+/**
+ * Map intent + entities to workflow (IMPROVED with Phase 4 features)
+ */
+function selectWorkflow(intent, entities, confidence, message = '') {
+  const complexity = entities.complexity || 'medium';
+  const thresholds = getCalibrationThresholds();
+  
+  // Detect project type for cross-workflow learning
+  const projectType = detectProjectType(message);
+  
+  // Phase 4: Borderline confidence handling
+  if (confidence >= thresholds.veryLow && confidence < thresholds.low) {
     return {
       workflow: WORKFLOWS.CLARIFY,
-      reasoning: 'Confidence below threshold - need clarification',
+      reasoning: 'Very low confidence - need clarification',
+      confidenceLevel: 'very_low',
+    };
+  }
+  
+  if (confidence >= thresholds.low && confidence < thresholds.borderline) {
+    // Check if we have cross-workflow learning that can boost confidence
+    const crossWorkflowSuggestion = getCrossWorkflowSuggestion(intent, projectType);
+    
+    if (crossWorkflowSuggestion && crossWorkflowSuggestion.confidence === 'high') {
+      return {
+        workflow: crossWorkflowSuggestion.workflow,
+        reasoning: `${crossWorkflowSuggestion.reason} - overriding low confidence`,
+        confidenceLevel: 'low_adjusted',
+        source: crossWorkflowSuggestion.source,
+      };
+    }
+    
+    return {
+      workflow: WORKFLOWS.CLARIFY,
+      reasoning: 'Low confidence - need clarification or LLM fallback',
+      confidenceLevel: 'low',
+      suggestLlmFallback: true,
     };
   }
   
@@ -576,11 +750,12 @@ async function detectIntent(message, options = {}) {
     }
   }
   
-  // Select workflow
-  const { workflow, reasoning } = selectWorkflow(
+  // Select workflow (pass message for cross-workflow learning)
+  const workflowResult = selectWorkflow(
     fastResult.intent,
     entities,
-    confidence
+    confidence,
+    normalizedMessage
   );
   
   // Build result
@@ -591,11 +766,13 @@ async function detectIntent(message, options = {}) {
     intent: fastResult.intent || INTENTS.CLARIFY,
     confidence: Math.round(confidence),
     entities,
-    suggestedWorkflow: workflow,
-    reasoning,
+    suggestedWorkflow: workflowResult.workflow,
+    reasoning: workflowResult.reasoning,
     matchedPatterns: fastResult.matchedPatterns,
     llmUsed,
     isCompound: false,
+    confidenceLevel: workflowResult.confidenceLevel || 'normal',
+    ...(workflowResult.source && { workflowSource: workflowResult.source }),
   };
   
   // NEW: Check for compound intent (Proposal #1)
@@ -676,12 +853,12 @@ function promptFeedback(suggestion) {
 /**
  * CLI Interface
  */
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log(`
-Ouroboros Intent Detector (v0.3)
+Ouroboros Intent Detector (v0.4 - Phase 4)
 
 Usage:
   node intent-detector.js <message>
@@ -696,14 +873,11 @@ Examples:
   node intent-detector.js "Build a React auth system"
   node intent-detector.js --explain "Fix the TypeScript error in auth.ts"
 
-Auto-Applied Improvements (v0.3):
-  ✓ Mixed intent detection
-  ✓ LLM fallback (50% threshold)
-  ✓ Urgency normalization
-  ✓ Quick workflow boosts
-  ✓ Decision patterns enhanced
-  ✓ Context caching (5-min TTL)
-  ✓ Architecture keyword boost
+Phase 4 Features:
+  ✓ Pattern calibration with adaptive weights
+  ✓ Cross-workflow learning integration
+  ✓ Borderline confidence fallback
+  ✓ Project type detection
 `);
     process.exit(0);
   }
@@ -717,7 +891,7 @@ Auto-Applied Improvements (v0.3):
     process.exit(1);
   }
   
-  const result = detectIntent(message, { noCache });
+  const result = await detectIntent(message, { noCache });
   const config = loadConfig();
   
   if (explain) {
@@ -765,7 +939,10 @@ Auto-Applied Improvements (v0.3):
 
 // Export for use as module
 if (require.main === module) {
-  main();
+  main().catch(err => {
+    console.error('Error:', err.message);
+    process.exit(1);
+  });
 } else {
   module.exports = {
     detectIntent,

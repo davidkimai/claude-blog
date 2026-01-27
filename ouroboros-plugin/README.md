@@ -19,7 +19,7 @@
 /plugin install ouroboros
 
 # Or clone directly
-git clone https://github.com/jaceتراك/ouroboros.git
+git clone https://github.com/davidkimai/ouroboros.git
 cd ouroboros
 ```
 
@@ -98,4 +98,4 @@ MIT - See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Pull requests welcome! See [GitHub](https://github.com/jaceتراك/ouroboros) for contribution guidelines.
+Pull requests welcome! See [GitHub](https://github.com/davidkimai/ouroboros) for contribution guidelines.

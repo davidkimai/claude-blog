@@ -406,13 +406,49 @@ Ouroboros:
 - "fix the" → +20% for debug_fix
 - Improved low-confidence handling
 
-## Future Phases
+## Phase 4 Features (Complete - Self-Improvement)
 
-**Phase 4 (Planned):**
-- Self-improvement learning from feedback
-- Advanced entity extraction with embeddings
-- Multi-agent workflow coordination
-- Predictive workflow suggestions
+### US-018: Self-Improvement Learning from Feedback
+- **Feedback Collection Mechanism**: Users can rate workflow selections (1-5 scale)
+- **Feedback Storage**: `memory/ouroboros-feedback.jsonl`
+- **Auto-Weight Adjustment**: Intent detection weights adjust based on successful/failed predictions
+- **Pattern Success Tracking**: Track pattern success rates over time
+- **Rating System**:
+  - 5: Excellent (worked perfectly)
+  - 4: Good (worked well)
+  - 3: Acceptable (minor issues)
+  - 2: Poor (significant issues)
+  - 1: Failed (didn't work)
+
+### US-019: Pattern Calibration
+- **Adaptive Pattern Weights**: Confidence scores adjust based on usage patterns
+- **Calibration File**: `memory/pattern-calibration.json`
+- **Usage Statistics**: Track pattern matching frequency and success rates
+- **Borderline Confidence Handling**:
+  - Very Low (<30%): Require clarification
+  - Low (30-45%): LLM fallback
+  - Borderline (45-55%): Apply fallback behavior
+  - High (55-75%): Approve
+  - Very High (>75%): Auto-approve
+- **Manual Boosting**: Adjust pattern weights manually
+
+### US-020: Workflow Effectiveness Tracking
+- **Effectiveness Metrics**: `memory/ouroboros-effectiveness.jsonl`
+- **Intent-Workflow Success Rates**: Track which workflows succeed for each intent
+- **Optimal Workflow Suggestions**: Based on historical success rates
+- **Cross-Workflow Learning**: What works across similar projects
+- **Performance Metrics**:
+  - Success rate per intent-workflow combination
+  - Average confidence scores
+  - Pattern effectiveness
+
+### US-021: Compound Engineering Synergy
+- **GSD↔Ralph Integration**: Improved handoff documentation
+- **Cross-Workflow Learning**: Learn from similar project patterns
+- **Project Type Detection**: Automatically detect web_frontend, fullstack, api, cli, etc.
+- **Handoff Templates**: Structured handoff documents between workflows
+- **Project Patterns**: `memory/project-patterns.json` with best practices
+- **Coordination Support**: Fullstack projects require GSD→Ralph coordination
 
 ## Development
 
@@ -449,7 +485,90 @@ Manage workflow monitoring.
 /ouroboros:monitor transition gsd_planning  # Manual phase transition
 ```
 
+### Phase 4 Commands
+
+#### `/ouroboros:stats`
+Show comprehensive effectiveness statistics and self-improvement metrics.
+
+**Example:**
+```
+/ouroboros:stats
+```
+
+**Output:**
+```
+📊 SUMMARY
+─────────────────────────────────────────────────────────────────
+Total Decisions: 7
+Total Feedback:  1
+Success Rate:    100%
+Avg Rating:      4.00/5
+
+📈 INTENT DETECTION
+─────────────────────────────────────────────────────────────────
+Avg Confidence: 50.0%
+LLM Usage:      0.0%
+
+💬 WORKFLOW ROUTING
+─────────────────────────────────────────────────────────────────
+Top Workflows:
+  • gsd-ralph-full: 3
+  • quick: 1
+
+📊 EFFECTIVENESS TRACKING
+─────────────────────────────────────────────────────────────────
+Workflow Success Rates:
+  • gsd-ralph-full: 100% (3 uses)
+  • quick: 100% (1 use)
+```
+
+#### `/ouroboros:feedback <decision-id> <rating> [notes]`
+Rate a workflow decision to improve future predictions.
+
+**Examples:**
+```
+/ouroboros:feedback "2026-01-27T04:22:14.905Z" 4 "Good match"
+/ouroboros:feedback "2026-01-27T04:22:14.908Z" 2 "Wrong workflow selected"
+```
+
+**Rating Scale:**
+- 5: Excellent (worked perfectly)
+- 4: Good (worked well)
+- 3: Acceptable (minor issues)
+- 2: Poor (significant issues)
+- 1: Failed (didn't work)
+
+#### `/ouroboros:effectiveness <intent>`
+Show workflow effectiveness for a specific intent.
+
+**Example:**
+```
+/ouroboros:effectiveness create_project
+```
+
+**Output:**
+```json
+[
+  {
+    "workflow": "gsd-ralph-full",
+    "successRate": "100.0",
+    "totalUses": 3,
+    "avgRating": "4.00",
+    "avgConfidence": "75.0"
+  }
+]
+```
+
+#### `/ouroboros:calibrate-pattern <pattern> <success|failed|partial>`
+Manually calibrate a pattern based on observed outcomes.
+
+**Examples:**
+```
+/ouroboros:calibrate-pattern build success
+/ouroboros:calibrate-pattern fix failed
+```
+
 ---
 
-**Status:** Phase 3 (v0.3) - MVP Polish: LLM fallback, context caching, simplified safety, workflow monitoring
-**Next:** Phase 4 - Self-improvement learning and advanced orchestration
+**Status:** Phase 4 (v0.4) - Self-Improvement: Feedback learning, pattern calibration, effectiveness tracking, cross-workflow synergy
+**Next:** Phase 5 - Predictive orchestration and advanced analytics
