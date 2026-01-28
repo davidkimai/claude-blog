@@ -12,6 +12,13 @@ SESSION_FILE="$STATE_DIR/current-session.json"
 
 mkdir -p "$NIGHTLY_DIR" "$STATE_DIR"
 
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+NC='\033[0m'
+
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
 session_ts() { date -Iseconds; }
 
