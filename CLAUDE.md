@@ -92,3 +92,61 @@ Check periodically:
 ---
 
 *Treat this workspace as your home. Keep it organized. Proactively help.*
+
+---
+
+## ⏰ Claude Hours Session Viewer
+
+Track progress over time with timestamps.
+
+### Commands
+
+```bash
+# View today's session
+./scripts/claude-hours-viewer.sh today
+
+# View recent sessions (default: 10)
+./scripts/claude-hours-viewer.sh recent 5
+
+# Weekly summary
+./scripts/claude-hours-viewer.sh weekly
+
+# View specific session
+./scripts/claude-hours-viewer.sh session 2026-01-27
+
+# Initialize new session
+./scripts/claude-autonomous-loop-simple.sh init "System Improvements"
+
+# Run one cycle
+./scripts/claude-autonomous-loop-simple.sh run "Research"
+
+# Finalize and save report
+./scripts/claude-autonomous-loop-simple.sh finalize
+```
+
+### Session Reports
+
+Reports saved to: `nightly/YYYY-MM-DD.json`
+
+Format:
+```json
+{
+  "timestamp": "2026-01-27T22:00:00-06:00",
+  "session_id": "claude-hours-2026-01-27",
+  "focus": "System improvements",
+  "total_cycles": 5,
+  "tasks_completed": 4,
+  "completed_tasks": ["Task 1", "Task 2", ...],
+  "milestones": ["Progress 1", "Progress 2", ...]
+}
+```
+
+### View Progress
+
+```bash
+# Quick status
+cat ~/.claude/state/current-session.json | jq '.'
+
+# View history
+cat nightly/*.json | jq -s 'sort_by(.timestamp) | .[-5:]'
+```
