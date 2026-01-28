@@ -9,10 +9,15 @@
 
 ## 🎯 Quick Start
 
-1. **Read first:** `AGENTS.md` → Core instructions for Claude
-2. **Check identity:** `IDENTITY.md` → Who I am
-3. **Review memory:** `memory/YYYY-MM-DD.md` (today + yesterday)
-4. **Long-term context:** `MEMORY.md` (main session only)
+**New Claude Instance?** → Read `QUICKSTART.md` FIRST! (One-page visual guide)
+
+1. **Start here:** `QUICKSTART.md` → Visual orientation (NEW!)
+2. **Operating manual:** `AGENTS.md` → Core instructions for Claude
+3. **Check identity:** `IDENTITY.md` → Who I am
+4. **Review memory:** `memory/YYYY-MM-DD.md` (today + yesterday)
+5. **Long-term context:** `MEMORY.md` (main session only)
+
+**First run?** → Execute `./scripts/first-run.sh` to verify setup
 
 ---
 
