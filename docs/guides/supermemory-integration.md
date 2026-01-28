@@ -10,158 +10,146 @@ Integrate [SuperMemory](https://supermemory.ai) with Claude Hours for:
 - User profile persistence
 - Memory that compounds across conversations
 
-## Setup
+Official plugin: [github.com/supermemoryai/clawdbot-supermemory](https://github.com/supermemoryai/clawdbot-supermemory)
 
-### 1. Get API Key
+## Option 1: Full ClawdBot Plugin (Recommended)
+
+If you have ClawdBot gateway installed:
 
 ```bash
-# Get your free API key from:
-https://console.supermemory.ai/keys
+# Install the official plugin
+npx clawdbot plugins install @supermemoryai/clawdbot-supermemory
+
+# Set API key
+export SUPERMEMORY_CLAWDBOT_API_KEY="sm_your_key_here"
+
+# Restart ClawdBot
+clawdbot gateway restart
 ```
 
-### 2. Configure API Key
+### Plugin Features (Official)
+- ✅ Auto-recall before every AI turn
+- ✅ Auto-capture after every turn
+- ✅ `/remember` and `/recall` slash commands
+- ✅ AI tools: supermemory_store, supermemory_search, supermemory_forget, supermemory_profile
+- ✅ Cross-platform memory (Telegram, WhatsApp, Discord, etc.)
+
+## Option 2: Claude Hours Standalone Integration
+
+For Claude Hours without full ClawdBot gateway:
+
+### Setup
 
 ```bash
-# Run the setup script
+# 1. Get API key: https://console.supermemory.ai/keys
+
+# 2. Configure
 ./scripts/claude-hours-supermemory.sh setup
 
-# Or manually create the config
-echo 'SUPERMEMORY_CLAWDBOT_API_KEY="sm_your_key_here"' > .env.supermemory
+# 3. Test
+./scripts/claude-hours-supermemory.sh remember "Test memory"
+./scripts/claude-hours-supermemory.sh recall "Test"
 ```
-
-### 3. Test Integration
-
-```bash
-# Remember something
-./scripts/claude-hours-supermemory.sh remember "I prefer async communication over calls"
-
-# Search memories
-./scripts/claude-hours-supermemory.sh recall "communication preferences"
-
-# View profile
-./scripts/claude-hours-supermemory.sh profile
-```
-
-## Claude Hours Integration
-
-### Task Rotation (Updated - Cycle 6)
-
-Add SuperMemory recall to Claude Hours task rotation:
-
-```bash
-# In scripts/claude-autonomous-loop-simple.sh, add:
-
-6)  # SuperMemory Recall
-    CONTEXT=$(./scripts/claude-hours-supermemory.sh auto-recall "Claude Hours recent tasks" 2>/dev/null | head -20)
-    PROMPT="Review SuperMemory recall: $CONTEXT. How does this relate to current tasks? Any relevant context?"
-    TASK_TYPE="SuperMemory Recall"
-    OUTPUT_FILE="memory/supermemory-recall.md"
-    ;;
-```
-
-### Automatic Capture
-
-After each task completes:
-
-```bash
-# In the task completion section:
-if [ "$result" = "success" ]; then
-    # Capture to SuperMemory
-    ./scripts/claude-hours-supermemory.sh auto-capture "$TASK_DESC" "Completed successfully" 2>/dev/null || true
-fi
-```
-
-## API Reference
 
 ### Commands
 
 | Command | Description |
 |---------|-------------|
-| `./scripts/claude-hours-supermemory.sh remember <text> [url]` | Save to memory |
-| `./scripts/claude-hours-supermemory.sh recall <query> [limit]` | Search memories |
-| `./scripts/claude-hours-supermemory.sh profile` | View user profile |
-| `./scripts/claude-hours-supermemory.sh forget <query>` | Delete memories |
-| `./scripts/claude-hours-supermemory.sh auto-recall [context]` | For Claude Hours |
-| `./scripts/claude-hours-supermemory.sh auto-capture <task> <result>` | After tasks |
+| `remember <text> [url]` | Save to memory |
+| `recall <query> [limit]` | Search memories |
+| `profile` | View user profile |
+| `forget <query>` | Delete memories |
+| `auto-recall [context]` | For Claude Hours |
+| `auto-capture <task> <result>` | After tasks |
 
-### Configuration
+### Claude Hours Integration
 
-| Env Variable | Location |
-|--------------|----------|
-| `SUPERMEMORY_CLAWDBOT_API_KEY` | `.env.supermemory` |
+Add to task rotation (scripts/claude-autonomous-loop-simple.sh):
 
-## File Structure
+```bash
+6)  # SuperMemory Recall
+    CONTEXT=$(./scripts/claude-hours-supermemory.sh auto-recall "recent tasks" 2>/dev/null | head -20)
+    PROMPT="Review SuperMemory: $CONTEXT. Apply to current task."
+    ;;
+```
+
+After task completion:
+```bash
+./scripts/claude-hours-supermemory.sh auto-capture "$TASK_DESC" "$result"
+```
+
+## Memory Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Claude Hours Memory                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────┐              │
+│  │  Three-Layer     │    │   SuperMemory    │              │
+│  │  Memory          │    │   (Cloud)        │              │
+│  │  (Local)         │    │                  │              │
+│  │                  │    │ • Semantic       │              │
+│  │ • Facts          │    │ • Cross-platform │              │
+│  │ • Entities       │    │ • Profile        │              │
+│  │ • Timeline       │    │ • Easy API       │              │
+│  └────────┬─────────┘    └────────┬─────────┘              │
+│           │                       │                         │
+│           └───────────┬───────────┘                         │
+│                       ↓                                      │
+│           ┌─────────────────────┐                           │
+│           │  Claude Hours       │                           │
+│           │  Autonomous Loop    │                           │
+│           │  (99 cycles/night)  │                           │
+│           └─────────────────────┘                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## API Reference
+
+### Environment Variables
+
+```bash
+SUPERMEMORY_CLAWDBOT_API_KEY="sm_..."  # In .env.supermemory
+```
+
+### Files
 
 ```
 CLAWD/
 ├── scripts/
-│   ├── claude-hours-supermemory.sh    # Main integration script
+│   ├── claude-hours-supermemory.sh    # CLI tool
 │   └── setup-supermemory.sh          # Setup assistant
 ├── memory/
 │   └── supermemory-recall.md        # Auto-recall outputs
 └── .env.supermemory                 # API key (gitignored)
 ```
 
-## Benefits for Claude Hours
+## Troubleshooting
 
-### Before Each Task
-- Recall relevant context from SuperMemory
-- User preferences
-- Past task outcomes
-- Project context
+| Issue | Solution |
+|-------|----------|
+| API key not found | Run `./scripts/claude-hours-supermemory.sh setup` |
+| No search results | Add more memories first, try different queries |
+| Permission denied | `chmod +x scripts/claude-hours-supermemory.sh` |
 
-### After Each Task  
-- Automatically capture task outcome
-- Store learnings
-- Build compound memory
-
-### Weekly Synthesis
-- SuperMemory provides semantic search
-- Find patterns across conversations
-- Extract persistent facts
-
-## Comparison: Three-Layer Memory vs SuperMemory
+## Comparison
 
 | Feature | Three-Layer Memory | SuperMemory |
 |---------|-------------------|-------------|
 | Storage | Local filesystem | Cloud API |
 | Search | Simple grep | Semantic/similarity |
 | Profile | Manual | Auto-built |
-| Deduplication | Basic | Advanced |
 | Cross-platform | No | Yes |
 | Cost | Free | Freemium |
 | Setup | Complex | Simple |
+| Claude Hours | ✅ Native | ✅ CLI integration |
 
-**Recommendation:** Use **both!**
-- Three-Layer: Local, compound, free
-- SuperMemory: Cloud, semantic, easy
-
-## Troubleshooting
-
-### "API key not configured"
-```bash
-./scripts/claude-hours-supermemory.sh setup
-```
-
-### "No results"
-- Check API key is valid
-- Try different search terms
-- Add more memories first
-
-### Permission denied
-```bash
-chmod +x scripts/claude-hours-supermemory.sh
-```
-
-## Next Steps
-
-1. ✅ Run setup: `./scripts/claude-hours-supermemory.sh setup`
-2. ✅ Test recall: `./scripts/claude-hours-supermemory.sh recall "test"`
-3. 🔄 Integrate with Claude Hours (optional)
-4. 📊 Monitor memory growth
+**Recommendation:** Use **both** - Three-Layer for local compound memory, SuperMemory for semantic search and cross-platform context!
 
 ## References
 
+- [GitHub: supermemoryai/clawdbot-supermemory](https://github.com/supermemoryai/clawdbot-supermemory)
 - [SuperMemory Docs](https://supermemory.ai/docs)
 - [ClawdBot Integration](https://supermemory.ai/docs/integrations/clawdbot)
 - [API Keys](https://console.supermemory.ai/keys)
@@ -169,4 +157,3 @@ chmod +x scripts/claude-hours-supermemory.sh
 ---
 
 *Generated for Claude Hours SuperMemory Integration*
-*Timestamp: $(date '+%Y-%m-%d %H:%M:%S')*
