@@ -1,69 +1,217 @@
 #!/bin/bash
-# Claude Autonomous Loop v2.4 - Integrated with Claude Home System
+# Claude Autonomous Loop v2.5 - With Timestamped Session Tracking
 set -euo pipefail
 
 CLAWD="/Users/jasontang/clawd"
-HOME_SYS="$CLAWD/scripts/claude-home-system.sh"
 CODEX="$CLAWD/scripts/codex-api.sh"
-LOG_DIR="$CLAWD/.claude/logs"
+VIEWER="$CLAWD/scripts/claude-hours-viewer.sh"
+NIGHTLY_DIR="$CLAWD/nightly"
 STATE_DIR="$CLAWD/.claude/state"
 CYCLE_FILE="$STATE_DIR/cycle.txt"
+SESSION_FILE="$STATE_DIR/current-session.json"
 
-mkdir -p "$LOG_DIR" "$STATE_DIR"
+mkdir -p "$NIGHTLY_DIR" "$STATE_DIR"
 
-ts() { date '+%H:%M:%S'; }
+ts() { date '+%Y-%m-%d %H:%M:%S'; }
+session_ts() { date -Iseconds; }
 
-log() { echo "[$(ts)] $1" >> "$LOG_DIR/loop.log"; }
+log() { echo "[$(ts)] $1" >> "$STATE_DIR/loop.log"; }
 
-# Load cycle
-[ -f "$CYCLE_FILE" ] && CYCLE=$(cat "$CYCLE_FILE") || CYCLE=0
+# === INIT SESSION ===
+init_session() {
+    local focus="$1"
+    local date_str=$(date +%Y-%m-%d)
+    local timestamp=$(session_ts)
+    
+    cat > "$SESSION_FILE" << EOF
+{
+  "timestamp": "$timestamp",
+  "session_id": "claude-hours-$date_str",
+  "focus": "$focus",
+  "started_at": "$(date -Iseconds)",
+  "cycle": 0,
+  "tasks_completed": [],
+  "outputs": [],
+  "milestones": []
+}
+EOF
+    
+    log "Session initialized: $date_str (Focus: $focus)"
+    echo -e "${GREEN}[$(ts)] Session started: $focus${NC}"
+}
 
-# Check Claude Hours
-HOUR=$(TZ='America/Chicago' date +%H)
-if [ "$HOUR" -ge 21 ] || [ "$HOUR" -lt 8 ]; then
-    CYCLE=$((CYCLE + 1))
-    echo "$CYCLE" > "$CYCLE_FILE"
-    log "Cycle $CYCLE: Claude Hours active"
+# === UPDATE SESSION ===
+update_session() {
+    local task="$1"
+    local result="$2"  # success/fail
     
-    TASK_NUM=$((CYCLE % 5))
+    local timestamp=$(session_ts)
+    local cycle=$(cat "$CYCLE_FILE")
     
-    # Tasks with context
-    case "$TASK_NUM" in
-        0)  CONTEXT=$(ls "$CLAWD/scripts/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-            PROMPT="Scripts in /Users/jasontang/clawd/scripts/: $CONTEXT. Which need improvement? Give 2 recommendations."
-            ;;
-        1)  CONTEXT=$(ls "$CLAWD/docs/guides/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-            PROMPT="Docs in /Users/jasontang/clawd/docs/guides/: $CONTEXT. Note gaps and improvements."
-            ;;
-        2)  CONTEXT=$(ls "$CLAWD/memory/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-            PROMPT="Memory files: $CONTEXT. Identify patterns and recommendations."
-            ;;
-        3)  CONTEXT=$(ls -d "$CLAWD"/*/ 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-            PROMPT="Workspace: $CONTEXT. Note reorganization opportunities."
-            ;;
-        4)  CONTEXT=$(ls "$CLAWD/skills/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-            PROMPT="Skills: $CONTEXT. List most useful capabilities."
-            ;;
-    esac
+    # Update session file
+    local tasks=$(cat "$SESSION_FILE" 2>/dev/null || echo "{}")
     
-    TASK_DESC="Task $CYCLE: Analyze workspace"
-    log "Executing: $TASK_DESC"
+    # Append task result
+    local new_task=$(cat << TASKEOF
+    {
+      "task": "$task",
+      "result": "$result",
+      "timestamp": "$timestamp",
+      "cycle": $cycle
+    }
+TASKEOF
+)
     
-    # Execute via Codex
-    cd "$CLAWD"
-    
-    if $CODEX --verbose "$PROMPT" >> "$LOG_DIR/codex.log" 2>&1; then
-        log "Task completed: $TASK_DESC"
-        # Record to Home System
-        $HOME_SYS feedback record "$TASK_DESC" success
-        $HOME_SYS memory save "cycle_${CYCLE}" "completed"
-    else
-        log "Task had issues: $TASK_DESC"
-        $HOME_SYS feedback record "$TASK_DESC" fail
+    # Update JSON (simple append to array)
+    if [ "$result" = "success" ]; then
+        jq --argjson task "$new_task" '.tasks_completed += [$task] | .milestones += ["Task completed: \($task)"]' "$SESSION_FILE" > "$SESSION_FILE.tmp" 2>/dev/null
+        mv "$SESSION_FILE.tmp" "$SESSION_FILE"
     fi
     
-else
-    log "Outside Claude Hours, sleeping..."
-fi
+    log "Task updated: $task -> $result"
+}
 
-log "Cycle $CYCLE complete"
+# === FINALIZE SESSION ===
+finalize_session() {
+    local date_str=$(date +%Y-%m-%d)
+    local report_file="$NIGHTLY_DIR/${date_str}.json"
+    
+    if [ ! -f "$SESSION_FILE" ]; then
+        echo "No active session to finalize"
+        return
+    fi
+    
+    # Count completed tasks
+    local cycle=$(cat "$CYCLE_FILE")
+    local tasks_done=$(jq '.tasks_completed | length' "$SESSION_FILE" 2>/dev/null || echo 0)
+    local focus=$(jq -r '.focus' "$SESSION_FILE" 2>/dev/null || echo "General")
+    
+    # Create nightly report with full timestamp
+    local timestamp=$(session_ts)
+    
+    cat > "$report_file" << EOF
+{
+  "timestamp": "$timestamp",
+  "session_id": "claude-hours-$date_str",
+  "focus": "$focus",
+  "total_cycles": $cycle,
+  "tasks_completed": $tasks_done,
+  "completed_tasks": $(jq '.tasks_completed | tojson' "$SESSION_FILE" 2>/dev/null || echo "[]"),
+  "milestones": $(jq '.milestones | tojson' "$SESSION_FILE" 2>/dev/null || echo "[]"),
+  "session_summary": {
+    "date": "$date_str",
+    "focus": "$focus",
+    "total_cycles": $cycle,
+    "tasks_completed": $tasks_done,
+    "created_at": "$(jq -r '.started_at' "$SESSION_FILE")",
+    "completed_at": "$timestamp"
+  }
+}
+EOF
+    
+    log "Session finalized: $date_str ($tasks_done tasks in $cycle cycles)"
+    echo -e "${GREEN}[$(ts)] Session finalized: $report_file${NC}"
+    
+    # Clean up temp session file
+    rm -f "$SESSION_FILE"
+}
+
+# === MAIN LOOP ===
+main() {
+    local focus="$1:-General"
+    
+    # Initialize session
+    init_session "$focus"
+    
+    # Load cycle
+    [ -f "$CYCLE_FILE" ] && CYCLE=$(cat "$CYCLE_FILE") || CYCLE=0
+    
+    # Check Claude Hours
+    HOUR=$(TZ='America/Chicago' date +%H)
+    if [ "$HOUR" -ge 21 ] || [ "$HOUR" -lt 8 ]; then
+        CYCLE=$((CYCLE + 1))
+        echo "$CYCLE" > "$CYCLE_FILE"
+        log "Cycle $CYCLE: Claude Hours active"
+        
+        # Task rotation
+        TASK_NUM=$((CYCLE % 5))
+        case "$TASK_NUM" in
+            0)  CONTEXT=$(ls "$CLAWD/scripts/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+                PROMPT="In /Users/jasontang/clawd/scripts/ analyze: $CONTEXT. Which need improvement? 2 recommendations."
+                ;;
+            1)  CONTEXT=$(ls "$CLAWD/docs/guides/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Docs in /Users/jasontang/clawd/docs/guides/: $CONTEXT. Note gaps."
+                ;;
+            2)  CONTEXT=$(ls "$CLAWD/memory/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Memory files: $CONTEXT. Identify patterns."
+                ;;
+            3)  CONTEXT=$(ls -d "$CLAWD"/*/ 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Workspace: $CONTEXT. Note reorganization opportunities."
+                ;;
+            4)  CONTEXT=$(ls "$CLAWD/skills/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Skills: $CONTEXT. List top 5 useful capabilities."
+                ;;
+        esac
+        
+        TASK_DESC="Task $CYCLE: Analyze workspace"
+        log "Executing: $TASK_DESC"
+        
+        # Execute via Codex
+        cd "$CLAWD"
+        
+        if $CODEX --verbose "$PROMPT" >> "$STATE_DIR/codex.log" 2>&1; then
+            log "Task completed: $TASK_DESC"
+            update_session "$TASK_DESC" "success"
+        else
+            log "Task had issues: $TASK_DESC"
+            update_session "$TASK_DESC" "fail"
+        fi
+    else
+        log "Outside Claude Hours, checking for active session..."
+        if [ -f "$SESSION_FILE" ]; then
+            finalize_session
+        fi
+        log "Sleeping..."
+    fi
+    
+    log "Cycle $CYCLE complete"
+}
+
+# === COMMANDS ===
+case "${1:-run}" in
+    run)
+        main "${2:-General}"
+        ;;
+    init)
+        init_session "${2:-General}"
+        ;;
+    finalize)
+        finalize_session
+        ;;
+    status)
+        if [ -f "$SESSION_FILE" ]; then
+            cat "$SESSION_FILE" | jq '.'
+        else
+            echo "No active session"
+        fi
+        ;;
+    view)
+        "$VIEWER" "${2:-today}"
+        ;;
+    history)
+        "$VIEWER" recent "${2:-10}"
+        ;;
+    weekly)
+        "$VIEWER" weekly
+        ;;
+    help|*)
+        echo "Usage: $0 <run|init|finalize|status|view|history|weekly|help>"
+        echo "  run [focus]     - Run one cycle (default)"
+        echo "  init <focus>    - Start new session"
+        echo "  finalize        - End session and save report"
+        echo "  status          - Show current session"
+        echo "  view [date]     - View session (today or YYYY-MM-DD)"
+        echo "  history [N]     - View recent sessions"
+        echo "  weekly          - Weekly summary"
+        ;;
+esac
