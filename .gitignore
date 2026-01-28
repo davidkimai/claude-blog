@@ -129,3 +129,4 @@ nightly/
 # Claude local state (keep private)
 .claude/
 .presence/
+.env.openrouter

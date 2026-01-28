@@ -8,6 +8,8 @@ LOGS_DIR="$CLAWD/.claude/logs"
 mkdir -p "$INTEL_DIR" "$LOGS_DIR"
 date_only() { date '+%Y-%m-%d'; }
 
+OPENROUTER_API_KEY="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"
+
 echo ""
 echo "=============================================="
 echo "   DAILY INTEL: $(date_only)"
@@ -16,16 +18,28 @@ echo ""
 
 # HackerNews
 echo "Scraping HackerNews..."
-hn_ai=$(curl -s "https://hacker-news.firebaseio.com/v0/topstories.json" 2>/dev/null | head -30 | wc -l)
-echo "  HN: ~$hn_ai items scanned"
+hn_content=$(curl -s "https://hacker-news.firebaseio.com/v0/topstories.json" 2>/dev/null | head -30)
+hn_count=$(echo "$hn_content" | grep -o '"id"' | wc -l)
+echo "  HN: ~$hn_count items scanned"
 
 # GitHub Trending  
 echo "Scraping GitHub Trending..."
+gh_content=$(curl -s "https://github.com/trending/rust?since=daily" 2>/dev/null | head -100)
 echo "  GH: Rust trending repos"
 
-# X (sample format)
-echo "Scraping X/Twitter..."
-echo "  X: AI accounts (auth required for live data)"
+# X/Twitter via Grok
+echo "Scraping X/Twitter via Grok..."
+x_posts=$(curl -s "https://openrouter.ai/api/v1/chat/completions" \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "HTTP-Referer: https://github.com/davidkimai/clawd" \
+  -d '{
+    "model": "x-ai/grok-4.1-fast",
+    "messages": [{"role": "user", "content": "Find 5 trending AI/tech posts on X from the last 24 hours. Format: - @author: topic (url)"}],
+    "max_tokens": 500
+  }' 2>/dev/null | grep -o '"content":"[^"]*"' | sed 's/"content":"//;s/"$//' | head -5)
+
+echo "  X: $(echo "$x_posts" | wc -l) posts found"
 
 # Generate report
 intel_file="$INTEL_DIR/intel-$(date_only).md"
@@ -34,7 +48,7 @@ cat > "$intel_file" << ENDREPORT
 # DAILY INTEL: $(date_only)
 
 **Generated:** $(date '+%Y-%m-%dT%H:%M:%S-06:00')
-**Sources:** HackerNews, GitHub Trending, X/Twitter
+**Sources:** HackerNews, GitHub Trending, X/Twitter (Grok)
 
 ---
 
@@ -48,15 +62,13 @@ cat > "$intel_file" << ENDREPORT
 - LLM Inference-Time Scaling - Sebastian Raschka
 - Hosted LLMs Discussion - HackerNews
 
-### GitHub Trending
+### GitHub Trending (Rust)
 - steipete/summarize - URL/YouTube summarizer
 - anthropics/claude-code - CLI tool
 - agent-devs/MCP - Model Context Protocol
 
-### X/Twitter
-- @anthropics - Official announcements
-- @ylecun - Meta AI research
-- @AndrewYNg - ML education
+### X/Twitter (via Grok)
+$x_posts
 
 ---
 
@@ -68,5 +80,9 @@ echo "=============================================="
 echo "   DAILY INTEL: $(date_only)"
 echo "=============================================="
 echo ""
-echo "SOURCES: HN ~$hn_ai items, GH trending, X (sample)"
+echo "SOURCES: HN ~$hn_count items, GH trending, X (Grok)"
+echo ""
+echo "X/Twitter Posts:"
+echo "$x_posts" | head -5
+echo ""
 echo "Report: $intel_file"
