@@ -122,3 +122,6 @@ skills/supabase-skills/
 skills/superpowers-skills/
 skills/vercel-agent-skills/
 skills/vercel-skills-full/
+
+# Claude Hours nightly reports
+nightly/
