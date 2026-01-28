@@ -450,6 +450,160 @@ Ouroboros:
 - **Project Patterns**: `memory/project-patterns.json` with best practices
 - **Coordination Support**: Fullstack projects require GSD→Ralph coordination
 
+## Phase 5: Seamless Compound Integration (Current)
+
+### Auto-Trigger Compound Workflows
+
+Ouroboros now seamlessly integrates with Compound Engineering workflows. No manual invocation needed.
+
+**How it works:**
+1. User expresses intent naturally (e.g., "Build an auth system")
+2. Ouroboros detects intent with confidence score
+3. Based on intent + context, automatically suggests appropriate workflow
+4. For high confidence (75%+), auto-suggests next phase
+5. Tracks state across Compound workflow phases
+
+**Phase Detection & Routing:**
+
+| User Intent | Current Phase | Auto-Triggered Command |
+|-------------|---------------|------------------------|
+| Vague/unclear | Any | `/brainstorming` |
+| Complex project | None/brainstormed | `/workflows:plan` |
+| Plan exists | Planning complete | `/workflows:work` |
+| Implementation done | Working | `/workflows:review` |
+| Review complete | Reviewing | `/workflows:compound` |
+
+**Seamless Workflow (No User Invocation):**
+
+```
+User: "Build me a React auth system with better-auth"
+
+Ouroboros automatically:
+1. Detects: create_project (85% confidence)
+2. Checks: No active workflow → suggest planning
+3. User approves → /workflows:plan auto-suggested
+4. Plan created → /workflows:work auto-suggested
+5. Work done → /workflows:review auto-suggested
+6. Review done → /workflows:compound auto-suggested
+7. Learnings captured → workflow complete
+```
+
+### Meta-Orchestrator Commands
+
+#### `/ouroboros:orchestrate [message]`
+Run meta-orchestration analysis and get seamless workflow suggestions.
+
+**Example:**
+```
+/ouroboros:orchestrate "Add OAuth login to my app"
+```
+
+**Output:**
+```
+🔮 Meta-Orchestrator Analysis
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Intent: extend_feature (78% confidence)
+Suggested: GSD→Ralph orchestration
+
+✨ Seamless suggestion: /workflows:plan
+Reason: Complex feature addition - planning recommended
+```
+
+#### `/ouroboros:status`
+Show current workflow state across all phases.
+
+**Example:**
+```
+/ouroboros:status
+```
+
+**Output:**
+```
+📊 Workflow Status
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Phase: planning (completed)
+Brainstorm: ✓ Complete
+Plan: ✓ Created
+Work: ⏳ Not started
+Review: ⏳ Pending
+Compound: ⏳ Pending
+```
+
+#### `/ouroboros:next`
+Get next suggested action based on current state.
+
+**Example:**
+```
+/ouroboros:next
+```
+
+**Output:**
+```
+⏭️ Next Action
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ready to execute plan. Suggesting:
+✨ /workflows:work - Execute with worktrees
+
+Auto-trigger: Yes (high confidence)
+```
+
+#### `/ouroboros:complete <phase>`
+Mark a Compound workflow phase as complete.
+
+**Examples:**
+```
+/ouroboros:complete planning    # Mark plan complete
+/ouroboros:complete working    # Mark work complete
+/ouroboros:complete reviewing # Mark review complete
+```
+
+### Seamless Integration Benefits
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| User action | Manually invoke `/workflows:plan` | Just describe intent |
+| Workflow state | Siloed per command | Tracked across phases |
+| Next action | User must remember | Auto-suggested |
+| Context | Lost between commands | Preserved automatically |
+| Learning | None | Effectiveness tracked |
+
+### State Tracking
+
+Ouroboros maintains state across Compound workflows:
+
+- `memory/workflow-state.json` - Current phase and outputs
+- `memory/compound-state.json` - Compound workflow tracking
+- `memory/ouroboros-decisions.jsonl` - All decisions with reasoning
+- `memory/ouroboros-effectiveness.jsonl` - Workflow success metrics
+
+**State Transitions:**
+
+```
+idle → brainstorming → planning → working → reviewing → compounding → idle
+                                          ↘_____________________↙
+```
+
+### Auto-Trigger Rules
+
+| Confidence | Intent | Action |
+|------------|--------|--------|
+| 75%+ | Clear + Complex | Auto-suggest next phase |
+| 50-75% | Compound pattern | Auto-suggest with context |
+| <50% | Unclear | Suggest brainstorming first |
+
+### Feedback Integration
+
+Rate workflow decisions to improve future routing:
+
+```
+/ouroboros:feedback <decision-id> <1-5> [notes]
+```
+
+This feeds into:
+- Pattern calibration
+- Workflow effectiveness tracking
+- Cross-workflow learning
+
 ## Development
 
 **Quality Gates:**
