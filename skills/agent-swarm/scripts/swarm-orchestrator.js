@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * Agent Swarm Orchestrator v1.2 🐝
+ * Agent Swarm Orchestrator v1.3 🐝
  * 
- * Inspired by Kimi K2.5 PARL (Parallel-Agent Reinforcement Learning)
- * Fixed: Subagent execution with proper escaping
+ * Inspired by Kimi K2.5 PARL
+ * Primary: Codex CLI OAuth
+ * Backup: Claude CLI OAuth
  */
 
 const fs = require('fs');
@@ -23,6 +24,7 @@ const CONFIG = {
 const GREEN = '\x1b[32m';
 const CYAN = '\x1b[36m';
 const MAGENTA = '\x1b[35m';
+const YELLOW = '\x1b[33m';
 const NC = '\x1b[0m';
 
 class AgentSwarm {
@@ -75,7 +77,7 @@ class AgentSwarm {
                 id: `swarm-${Date.now()}-${i}`,
                 name: `${template.role} Task ${i + 1}`,
                 role: template.role,
-                prompt: `[${template.role}] Task: ${task}\n\nExecute and report SUBTASK_COMPLETE.`,
+                prompt: `[${template.role}] Task: ${task}\n\nExecute and report SUBTASK_COMPLETE when done.`,
                 maxSteps: template.max_steps || 15,
                 status: 'pending', startTime: null, endTime: null, result: null, error: null, criticalTime: 0
             });
@@ -102,30 +104,38 @@ class AgentSwarm {
         subtask.status = 'running';
         
         try {
-            subtask.result = await this.runSubagent(subtask);
+            subtask.result = await this.runSubagentWithOAuth(subtask);
             subtask.status = 'completed';
-            this.log(`✓ ${subtask.name} done`);
-        } catch (error) {
-            subtask.status = 'failed';
-            subtask.error = error.message;
-            this.log(`✗ ${subtask.name}: ${error.message}`);
+            this.log(`✓ ${subtask.name} done (Codex OAuth)`);
+        } catch (codexError) {
+            this.log(`Codex failed: ${codexError.message.substring(0, 50)}`);
+            try {
+                subtask.result = await this.runClaudeFallback(subtask);
+                subtask.status = 'completed';
+                this.log(`✓ ${subtask.name} done (Claude OAuth)`);
+            } catch (claudeError) {
+                subtask.status = 'failed';
+                subtask.error = claudeError.message;
+                this.log(`✗ ${subtask.name}: All providers failed`);
+            }
         }
         
         subtask.endTime = Date.now();
         subtask.criticalTime = subtask.endTime - subtask.startTime;
-        this.state.criticalSteps.push({ subtask: subtask.name, time: subtask.criticalTime, stage: this.state.stage++ });
+        this.state.criticalSteps.push({ subtask: subtask.name, time: subtask.criticalTime, stage: this.state.stage++, provider: subtask.result ? 'codex' : 'failed' });
         this.state.completed.push(subtask);
     }
 
-    async runSubagent(subtask) {
+    async runSubagentWithOAuth(subtask) {
+        // Primary: Codex CLI OAuth
+        const tmpFile = `/tmp/swarm-prompt-${subtask.id}.txt`;
+        fs.writeFileSync(tmpFile, subtask.prompt);
+        
         return new Promise((resolve, reject) => {
-            // Write prompt to temp file to avoid escaping issues
-            const tmpFile = `/tmp/swarm-prompt-${subtask.id}.txt`;
-            fs.writeFileSync(tmpFile, subtask.prompt);
-            
-            const proc = spawn('claude', ['-p', `@${tmpFile}`], {
+            const proc = spawn('codex', ['exec', `@${tmpFile}`], {
                 cwd: CONFIG.clawdRoot,
-                timeout: CONFIG.subagentTimeout
+                timeout: CONFIG.subagentTimeout,
+                maxBuffer: 1024 * 1024
             });
             
             let stdout = '', stderr = '';
@@ -135,8 +145,38 @@ class AgentSwarm {
             proc.on('close', code => {
                 try { fs.unlinkSync(tmpFile); } catch (e) {}
                 if (code === 0) resolve(stdout);
-                else if (code === null) resolve(stdout); // Timeout
-                else reject(new Error(`Exit ${code}: ${stderr}`));
+                else if (code === null) resolve(stdout); // Timeout - still counts
+                else reject(new Error(`Codex exit ${code}: ${stderr.substring(0, 100)}`));
+            });
+            
+            proc.on('error', err => {
+                try { fs.unlinkSync(tmpFile); } catch (e) {}
+                reject(err);
+            });
+        });
+    }
+
+    async runClaudeFallback(subtask) {
+        // Backup: Claude CLI OAuth
+        const tmpFile = `/tmp/swarm-claude-${subtask.id}.txt`;
+        fs.writeFileSync(tmpFile, subtask.prompt);
+        
+        return new Promise((resolve, reject) => {
+            const proc = spawn('claude', ['-p', `@${tmpFile}`], {
+                cwd: CONFIG.clawdRoot,
+                timeout: CONFIG.subagentTimeout,
+                maxBuffer: 1024 * 1024
+            });
+            
+            let stdout = '', stderr = '';
+            proc.stdout.on('data', d => stdout += d.toString());
+            proc.stderr.on('data', d => stderr += d.toString());
+            
+            proc.on('close', code => {
+                try { fs.unlinkSync(tmpFile); } catch (e) {}
+                if (code === 0) resolve(stdout);
+                else if (code === null) resolve(stdout);
+                else reject(new Error(`Claude exit ${code}: ${stderr.substring(0, 100)}`));
             });
             
             proc.on('error', err => {
@@ -161,7 +201,12 @@ class AgentSwarm {
             successRate: (this.state.completed.length / this.state.subtasks.length * 100).toFixed(1),
             speedupVsSequential: (results.totalTime / maxTime).toFixed(2),
             totalTime: results.totalTime,
-            criticalSteps: maxTime
+            criticalSteps: maxTime,
+            providers: {
+                codex: this.state.criticalSteps.filter(s => s.provider === 'codex').length,
+                claude: this.state.criticalSteps.filter(s => s.provider === 'claude').length,
+                failed: this.state.failed.length
+            }
         };
         
         this.log(`Complete: ${results.completed}/${this.state.subtasks.length} | Speedup: ${results.metrics.speedupVsSequential}x`);
@@ -170,7 +215,12 @@ class AgentSwarm {
 
     trackMetrics(results) {
         try {
-            const entry = { timestamp: new Date().toISOString(), task: this.state.task, ...results.metrics, subtaskCount: this.state.subtasks.length };
+            const entry = { 
+                timestamp: new Date().toISOString(), 
+                task: this.state.task, 
+                ...results.metrics, 
+                subtaskCount: this.state.subtasks.length 
+            };
             this.metrics.push(entry);
             fs.writeFileSync(CONFIG.metricsFile, this.metrics.map(m => JSON.stringify(m)).join('\n') + '\n');
             this.log('Metrics tracked');
@@ -181,7 +231,8 @@ class AgentSwarm {
         this.state.task = task;
         console.log(`\n${MAGENTA}╔════════════════════════════════════════════════════╗${NC}`);
         console.log(`${MAGENTA}║${NC}       ${GREEN}Agent Swarm Orchestrator 🐝${NC}                 ${MAGENTA}║${NC}`);
-        console.log(`${MAGENTA}╚════════════════════════════════════════════════════╝${NC}\n`);
+        console.log(`${MAGENTA}╚════════════════════════════════════════════════════╝${NC}`);
+        console.log(`${YELLOW}Primary: Codex OAuth | Backup: Claude OAuth${NC}\n`);
         
         try {
             this.loadTemplates();
@@ -193,8 +244,8 @@ class AgentSwarm {
             console.log(`\n${GREEN}🐝 Swarm Complete!${NC}`);
             console.log(`${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}`);
             console.log(`Subtasks: ${results.completed}/${this.state.subtasks.length} successful`);
-            console.log(`Speedup: ${results.metrics.speedupVsSequential}x`);
-            console.log(`Success Rate: ${results.metrics.successRate}%`);
+            console.log(`Providers: Codex ${results.metrics.providers.codex} | Claude ${results.metrics.providers.claude} | Failed ${results.metrics.providers.failed}`);
+            console.log(`Speedup: ${results.metrics.speedupVsSequential}x | Success: ${results.metrics.successRate}%`);
             console.log(`${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n`);
             return results;
         } catch (error) {
@@ -207,7 +258,9 @@ class AgentSwarm {
 async function main() {
     const args = process.argv.slice(2);
     if (args[0] === 'help' || !args[0]) {
-        console.log(`${MAGENTA}Agent Swarm Orchestrator 🐝${NC}\nUsage: node swarm-orchestrator.js init "task description"`);
+        console.log(`${MAGENTA}Agent Swarm Orchestrator 🐝${NC}`);
+        console.log(`Primary: Codex CLI OAuth | Backup: Claude CLI OAuth`);
+        console.log(`\nUsage: node swarm-orchestrator.js init "task description"`);
         process.exit(0);
     }
     const task = args.slice(1).join(' ') || 'Test task';
