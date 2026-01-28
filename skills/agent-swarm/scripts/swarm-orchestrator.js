@@ -17,8 +17,8 @@ const CONFIG = {
     parallelStages: true,
     trackCriticalSteps: true,
     templatesDir: '/Users/jasontang/clawd/skills/agent-swarm/templates',
-    metricsFile: path.join(__dirname, 'memory', 'swarm-metrics.jsonl'),
-    stateFile: path.join(__dirname, 'memory', 'swarm-state.json'),
+    metricsFile: '/Users/jasontang/clawd/skills/agent-swarm/memory/swarm-metrics.jsonl',
+    stateFile: '/Users/jasontang/clawd/skills/agent-swarm/memory/swarm-state.json',
     clawdRoot: '/Users/jasontang/clawd'
 };
 
@@ -226,9 +226,7 @@ Remember: You're part of a swarm. Complete your part so results can be aggregate
         return new Promise((resolve, reject) => {
             const proc = spawn('claude', [
                 '-p',
-                subtask.prompt,
-                '--session', subtask.id,
-                '--agent', 'swarm-subagent'
+                subtask.prompt
             ], {
                 cwd: CONFIG.clawdRoot,
                 stdio: ['pipe', 'pipe', 'pipe'],

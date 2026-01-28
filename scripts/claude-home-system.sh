@@ -135,7 +135,9 @@ dashboard() {
     echo -e "${CYAN}🔧 Pillar 1: Reliable Tools${NC}"
     echo "   claude: $(tool_check claude)"
     echo "   codex: $(tool_check codex)"
+    echo "   codexbar: $(tool_check codexbar)"
     echo "   codex-api: $(tool_check $CLAWD/scripts/codex-api.sh)"
+    echo "   codex-api-cost: $(tool_check $CLAWD/scripts/codex-api-cost.sh)"
     echo ""
     
     echo -e "${CYAN}🧠 Pillar 2: Memory That Persists${NC}"
@@ -182,7 +184,9 @@ case "${1:-dashboard}" in
     health)
         echo -e "${CYAN}Health Check${NC}"
         tool_validate "claude --version" "Claude CLI" || true
-        tool_validate "$CLAWD/scripts/codex-api.sh --help" "Codex API" || true ;;
+        tool_validate "codexbar --version" "CodexBar" || true
+        tool_validate "$CLAWD/scripts/codex-api.sh --help" "Codex API" || true
+        tool_validate "$CLAWD/scripts/codex-api-cost.sh --help" "Codex API Cost" || true ;;
     help|*) 
         echo "Usage: $0 <dashboard|tools|memory|feedback|growth|decision|health>"
         echo "  dashboard  - Show all 4 pillars"
