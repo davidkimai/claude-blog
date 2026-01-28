@@ -130,3 +130,4 @@ nightly/
 .claude/
 .presence/
 .env.openrouter
+.claude/api-config.json

@@ -8,7 +8,10 @@ LOGS_DIR="$CLAWD/.claude/logs"
 mkdir -p "$INTEL_DIR" "$LOGS_DIR"
 date_only() { date '+%Y-%m-%d'; }
 
-OPENROUTER_API_KEY="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"
+# Load API key from .env.openrouter if available
+if [ -f "$CLAWD/.env.openrouter" ]; then
+    source "$CLAWD/.env.openrouter"
+fi
 
 echo ""
 echo "=============================================="
@@ -29,17 +32,21 @@ echo "  GH: Rust trending repos"
 
 # X/Twitter via Grok
 echo "Scraping X/Twitter via Grok..."
-x_posts=$(curl -s "https://openrouter.ai/api/v1/chat/completions" \
-  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "HTTP-Referer: https://github.com/davidkimai/clawd" \
-  -d '{
-    "model": "x-ai/grok-4.1-fast",
-    "messages": [{"role": "user", "content": "Find 5 trending AI/tech posts on X from the last 24 hours. Format: - @author: topic (url)"}],
-    "max_tokens": 500
-  }' 2>/dev/null | grep -o '"content":"[^"]*"' | sed 's/"content":"//;s/"$//' | head -5)
-
-echo "  X: $(echo "$x_posts" | wc -l) posts found"
+if [ -n "${OPENROUTER_API_KEY:-}" ]; then
+    x_posts=$(curl -s "https://openrouter.ai/api/v1/chat/completions" \
+      -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+      -H "Content-Type: application/json" \
+      -H "HTTP-Referrer: https://github.com/davidkimai/clawd" \
+      -d '{
+        "model": "x-ai/grok-4.1-fast",
+        "messages": [{"role": "user", "content": "Find 5 trending AI/tech posts on X from the last 24 hours. Format: - @author: topic (url)"}],
+        "max_tokens": 500
+      }' 2>/dev/null | grep -o '"content":"[^"]*"' | sed 's/"content":"//;s/"$//' | head -5)
+    echo "  X: $(echo "$x_posts" | wc -l) posts found"
+else
+    x_posts="- @anthropics: Sample post (API key not set)"
+    echo "  X: API key not configured"
+fi
 
 # Generate report
 intel_file="$INTEL_DIR/intel-$(date_only).md"
