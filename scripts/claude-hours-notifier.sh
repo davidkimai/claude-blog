@@ -162,7 +162,7 @@ $outputs"
 # === CLI INTERFACE ===
 if [ "${1:-}" = "cli" ]; then
     shift
-    local cmd="$1"
+    cmd="$1"
     shift
     case "$cmd" in
         started)

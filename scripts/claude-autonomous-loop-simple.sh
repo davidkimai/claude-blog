@@ -158,7 +158,7 @@ EOF
 
 # === MAIN LOOP ===
 main() {
-    local focus="$1:-General"
+    local focus="${1:-General}"
     
     init_session "$focus"
     
