@@ -1,8 +1,0 @@
-# Memory Persistence Attack PoC - Requirements
-# Educational/Research Purpose Only
-
-# No external dependencies - uses only Python standard library
-# Python 3.6+ recommended
-
-# Optional: For enhanced JSON handling (included in Python 3.6+)
-# jsonlib >= 1.0

@@ -103,3 +103,22 @@ temp/
 *.backup
 *~
 \#*\#
+
+# =====================================================
+# EMBEDDED GIT REPOS (Submodule-like, managed separately)
+# =====================================================
+projects/get-shit-done-repo/
+projects/ralph-tui-repo/
+skills/anthropics-skills/
+skills/better-auth-skills/
+skills/callstack-skills/
+skills/composio-skills/
+skills/compound-engineering/
+skills/google-stitch-skills/
+skills/math-to-manim/
+skills/nextlevelbuilder-skills/
+skills/squirrelscan-skills/
+skills/supabase-skills/
+skills/superpowers-skills/
+skills/vercel-agent-skills/
+skills/vercel-skills-full/

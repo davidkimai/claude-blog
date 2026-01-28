@@ -24,6 +24,12 @@
 - Spawn subagents liberally — don't do heavy lifting in main session
 - See: `AGENTS.md` for strict model selection protocol.
 
+**Configuration Changes:**
+- **ALWAYS ask before making any config changes** — even small ones
+- Present the proposed change, explain why, get explicit approval
+- This applies to all config files: ouroboros-config.json, model-routing, AGENTS.md, etc.
+- Don't assume consent even for "minor" changes
+
 ## Major Work
 
 **Context Engineering Framework** — achieved significant community adoption  

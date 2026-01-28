@@ -1,11 +1,12 @@
 ---
 name: ouroboros
-description: Meta-orchestration layer. Detects user intent, routes workflows, and orchestrates GSD↔Ralph-TUI integration with decision audit trail.
+description: Meta-orchestration layer for Clawdbot. Detects user intent, routes workflows, and orchestrates GSD↔Ralph-TUI integration with decision audit trail.
+metadata: {"clawdis":{"emoji":"🐍"}}
 ---
 
 # Ouroboros: Meta-Orchestration
 
-Self-improving meta-orchestrator that detects intent, routes workflows, and coordinates GSD↔Ralph-TUI execution.
+Self-improving meta-orchestrator for Clawdbot that detects intent, routes workflows, and coordinates GSD↔Ralph-TUI execution.
 
 ## What This Does
 
@@ -27,7 +28,7 @@ Ouroboros is the intelligence layer that sits above your skills:
 - `/ouroboros:explain` - Show decision audit trail
 - `/ouroboros:config` - View/update configuration
 
-## Architecture
+## Architecture (v0.1)
 
 ```
 User Message
@@ -39,6 +40,8 @@ Intent Detector (multi-layer)
     ↓
 Confidence Scoring (0-100)
     ↓
+Decision Logger (audit trail)
+    ↓
 Workflow Selection
     ├─ GSD (planning focus)
     ├─ Ralph-TUI (execution focus)
@@ -46,64 +49,526 @@ Workflow Selection
     └─ Quick (simple tasks)
 ```
 
-## Workflows
+## Phase 1 Features (Complete)
 
-| Workflow | Use When |
-|----------|----------|
-| `gsd-ralph-full` | Complex projects (Plan → Execute) |
-| `gsd-only` | Planning, architecture decisions |
-| `ralph-only` | Quick fixes, simple tasks |
-| `quick` | Simple additions (buttons, styles) |
-| `research` | Investigation, best practices |
-| `clarify` | Ambiguous requests |
+### US-001: Intent Detection Engine
+- Parse user messages for intent signals
+- Classify: planning, execution, research, fix, optimization
+- Map to skill combinations
+- Confidence scoring (0-100)
+- Explainable decisions
 
-## Intent Categories
+### US-008: Decision Audit Trail
+- Append-only JSONL logging
+- Timestamp, intent, confidence, workflow, reasoning
+- Query and explain past decisions
 
-| Intent | Description |
-|--------|-------------|
-| `create_project` | Build new system from scratch |
-| `extend_feature` | Add to existing project |
-| `debug_fix` | Fix bugs or errors |
-| `discuss_decision` | Architectural/design discussion |
-| `optimize` | Improve performance/code quality |
-| `research` | Gather information |
-| `clarify` | Need more information |
+## Phase 2 Features (Complete)
+
+### US-002: Auto-Skill Installation
+- Map intent → required skills
+- Check installation status
+- Query skills.sh for availability
+- Cache installation preferences (auto/never/ask)
+- Suggest missing skills based on workflow
+
+### US-005: Proactive Workflow Suggestions
+- Detect workflow state transitions (idle → planning → executing → testing → etc.)
+- Suggest next logical action based on current state
+- Learn from accepted/rejected suggestions
+- Rate limit: 1 suggestion per 5 minutes
+- Adapt suggestions based on feedback
+
+### US-006: Bottleneck Detection
+- Monitor time since last progress (30min/2hr/24hr thresholds)
+- Detect common patterns: verification wait, unclear requirements, technical blockers
+- Suggest specific unblocking actions
+- Track bottleneck frequency and patterns
+
+### US-012: Context-Aware Orchestration
+- Detect project type (web frontend, fullstack, API, CLI, library)
+- Find existing GSD artifacts (specs, architecture, tasks)
+- Consider recent conversation context
+- Adjust workflow routing based on project state
 
 ## Commands
 
-### `/ouroboros:detect [message]`
-Analyze intent of a message.
+### Phase 1 Commands
 
-### `/ouroboros:explain [limit]`
+#### `/ouroboros:detect [message]`
+Analyze intent of a message (uses last user message if not provided).
+
+**Example:**
+```
+/ouroboros:detect Build me a React auth system with better-auth
+```
+
+**Output:**
+```json
+{
+  "intent": "create_project",
+  "confidence": 92,
+  "entities": {
+    "framework": "React",
+    "domain": "authentication",
+    "library": "better-auth"
+  },
+  "suggestedWorkflow": "gsd-ralph-full",
+  "reasoning": "High complexity project requiring planning + execution"
+}
+```
+
+#### `/ouroboros:explain [limit]`
 Show recent decision audit trail.
 
-### `/ouroboros:config [key] [value]`
+**Example:**
+```
+/ouroboros:explain 5
+```
+
+Shows last 5 decisions with timestamps, confidence, and reasoning.
+
+#### `/ouroboros:config [key] [value]`
 View or update configuration.
 
-## Example
-
+**Examples:**
 ```
-User: "Build a React auth system with OAuth"
+/ouroboros:config                          # Show all config
+/ouroboros:config min_confidence 70        # Set minimum confidence threshold
+/ouroboros:config auto_execute false       # Disable auto-execution
+```
+
+### Phase 2 Commands
+
+#### `/ouroboros:skills [intent]`
+Check required skills for an intent and suggest installations.
+
+**Example:**
+```
+/ouroboros:skills create_project
+```
+
+**Output:**
+```json
+{
+  "requiredSkills": ["get-shit-done", "ralph-tui-prd"],
+  "missingSkills": ["ralph-tui-prd"],
+  "suggestions": [...]
+}
+```
+
+#### `/ouroboros:suggest`
+Generate proactive workflow suggestion based on current state.
+
+**Example:**
+```
+/ouroboros:suggest
+```
+
+**Output:**
+```json
+{
+  "currentState": "executing",
+  "suggestion": {
+    "action": "run_tests",
+    "reason": "Verify implementation with tests"
+  },
+  "alternatives": [...]
+}
+```
+
+#### `/ouroboros:bottleneck`
+Check for workflow bottlenecks and get unblocking suggestions.
+
+**Example:**
+```
+/ouroboros:bottleneck
+```
+
+**Output:**
+```json
+{
+  "isBottleneck": true,
+  "status": "slowing",
+  "detectedPatterns": ["waiting_verification"],
+  "suggestions": [
+    "Run automated tests if available",
+    "Create a verification checklist"
+  ]
+}
+```
+
+#### `/ouroboros:context [path]`
+Analyze project context and get context-aware routing.
+
+**Example:**
+```
+/ouroboros:context ./my-project
+```
+
+**Output:**
+```json
+{
+  "projectType": {
+    "type": "web_fullstack",
+    "confidence": 85
+  },
+  "artifacts": {
+    "spec": ["SPEC.md"],
+    "tasks": ["TASKS.md"]
+  },
+  "suggestedSkills": ["get-shit-done", "ralph-tui-prd"]
+}
+```
+
+## Configuration
+
+Located at `skills/ouroboros/memory/ouroboros-config.json`:
+
+```json
+{
+  "intent_detection": {
+    "min_confidence_threshold": 40,
+    "use_llm_fallback": true,
+    "llm_fallback_threshold": 40,
+    "log_all_detections": true,
+    "enable_context_caching": true,
+    "cache_ttl_ms": 300000
+  },
+  "workflow_routing": {
+    "auto_execute": false,
+    "require_confirmation": true,
+    "default_workflow": "clarify"
+  },
+  "audit": {
+    "max_log_entries": 10000,
+    "log_path": "memory/ouroboros-decisions.jsonl"
+  }
+}
+```
+
+## Decision Log Format
+
+Each decision logged to `memory/ouroboros-decisions.jsonl`:
+
+```json
+{
+  "timestamp": "2025-01-26T22:30:00.000Z",
+  "message": "Build a React auth system with better-auth",
+  "intent": "create_project",
+  "confidence": 92,
+  "entities": {
+    "framework": "React",
+    "domain": "authentication"
+  },
+  "suggestedWorkflow": "gsd-ralph-full",
+  "reasoning": "High complexity project requiring planning + execution",
+  "matched_patterns": ["build", "system", "framework_mention"],
+  "llm_used": false
+}
+```
+
+## Intent Categories
+
+| Intent | Description | Typical Workflow |
+|--------|-------------|------------------|
+| `create_project` | Build new system from scratch | GSD → Ralph full |
+| `extend_feature` | Add to existing project | GSD planning → Ralph exec |
+| `debug_fix` | Fix bugs or errors | Quick fix or Ralph |
+| `discuss_decision` | Architectural/design discussion | GSD discussion only |
+| `optimize` | Improve performance/code quality | GSD analysis → Ralph |
+| `research` | Gather information, no execution | Research skill |
+| `clarify` | Need more information | Ask questions |
+
+## Integration with GSD & Ralph-TUI
+
+Ouroboros orchestrates these skills:
+
+**Planning Phase (GSD):**
+1. Context engineering
+2. Requirement gathering
+3. Architecture decisions
+4. Spec creation
+
+**Execution Phase (Ralph-TUI):**
+1. Convert GSD output to PRD
+2. Task orchestration
+3. Autonomous execution
+4. Quality verification
+
+**Ouroboros' Role:**
+- Detect when to use GSD, Ralph, or both
+- Pass context between phases
+- Monitor progress and quality gates
+- Suggest next actions
+
+## Example Workflows
+
+### Full Orchestration
+```
+User: "Build a real-time chat app with Next.js and Supabase"
 
 Ouroboros:
 1. Detects: create_project, high complexity
-2. Suggests: "gsd-ralph-full" (55% confidence)
-3. On approval: Triggers GSD → Ralph workflow
+2. Logs decision (confidence: 95)
+3. Suggests: "This looks complex. Run GSD for planning, then Ralph for execution?"
+4. On approval: Triggers /gsd:new-project → ralph-tui workflow
 ```
 
-## Integration
+### Quick Task
+```
+User: "Fix the TypeScript error in auth.ts"
 
-Works with:
-- **GSD** (get-shit-done) for planning
-- **Ralph-TUI** for execution
-- Context7 MCP for framework docs
+Ouroboros:
+1. Detects: debug_fix, low complexity
+2. Logs decision (confidence: 88)
+3. Suggests: "Quick fix - shall I handle this directly?"
+4. No need for GSD/Ralph overhead
+```
 
 ## Files
 
-- `scripts/intent-detector.js` - Intent detection engine
-- `memory/ouroboros-config.json` - Configuration
-- `memory/ouroboros-decisions.jsonl` - Audit trail
+### Phase 1 Files
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | This documentation |
+| `scripts/intent-detector.js` | Intent detection logic |
+| `scripts/decision-logger.js` | Audit trail management |
+| `memory/ouroboros-decisions.jsonl` | Decision log (append-only) |
+| `memory/ouroboros-config.json` | Configuration |
+
+### Phase 2 Files
+| File | Purpose |
+|------|---------|
+| `scripts/skill-installer.js` | Auto-skill installation and suggestions |
+| `scripts/proactive-engine.js` | Proactive workflow suggestions |
+| `scripts/bottleneck-detector.js` | Bottleneck detection and unblocking |
+| `scripts/context-aware.js` | Context-aware orchestration |
+| `memory/skill-preferences.json` | Skill installation preferences |
+| `memory/proactive-suggestions.jsonl` | Suggestion log |
+| `memory/suggestion-feedback.jsonl` | Feedback on suggestions |
+| `memory/workflow-state.json` | Current workflow state |
+| `memory/progress-tracking.jsonl` | Progress events log |
+| `memory/bottlenecks.jsonl` | Bottleneck occurrences log |
+| `memory/context-cache.json` | Cached project context |
+
+### Phase 3 Files
+| File | Purpose |
+|------|---------|
+| `scripts/safety-controller.js` | Simplified safety with human oversight |
+| `scripts/workflow-monitor.js` | Workflow monitoring integration |
+| `memory/safety-audit.jsonl` | Safety decision audit trail |
+| `memory/workflow-state.json` | Enhanced workflow state tracking |
+
+## Safety & Self-Improvement
+
+**v0.1 Policy (Option A):**
+- ✅ Auto-approve: configuration changes, logging updates
+- ⚠️ Human approval: code changes to detection logic
+- 📝 All changes: logged to audit trail
+
+**Bounds:**
+- Max confidence threshold: 0-100
+- Auto-execute: disabled by default (safety first)
+- Decision log: max 10,000 entries (rotates)
+
+## Phase 3 Features (Current - MVP Polish)
+
+### US-013: LLM Fallback for Intent Detection
+- Automatic Claude call when fast detection confidence < 40%
+- Improves accuracy by 15-20% for ambiguous messages
+- JSON-based classification with reasoning
+- Transparent LLM usage tracking
+
+### US-014: Context Caching
+- LRU cache for intent detection results
+- TTL: 5 minutes (configurable)
+- 50-70% faster for repeated patterns
+- Automatic cache invalidation
+
+### US-015: Simplified Safety Controller
+- Auto-approve: config changes, rule updates
+- Human approval: code changes, skill installation
+- Basic audit trail (JSONL)
+- Iteration bounds checking
+- Rollback system deferred to post-MVP
+
+### US-016: Workflow Monitor Integration
+- Leverages existing `spawn-monitored.sh`
+- Hooks into notification system
+- Tracks GSD↔Ralph phase transitions
+- Real-time progress updates
+- No new monitoring infrastructure
+
+### US-017: Pattern Boosting
+- Phrase-specific confidence boosts
+- "build a" → +15% for create_project
+- "fix the" → +20% for debug_fix
+- Improved low-confidence handling
+
+## Phase 4 Features (Complete - Self-Improvement)
+
+### US-018: Self-Improvement Learning from Feedback
+- **Feedback Collection Mechanism**: Users can rate workflow selections (1-5 scale)
+- **Feedback Storage**: `memory/ouroboros-feedback.jsonl`
+- **Auto-Weight Adjustment**: Intent detection weights adjust based on successful/failed predictions
+- **Pattern Success Tracking**: Track pattern success rates over time
+- **Rating System**:
+  - 5: Excellent (worked perfectly)
+  - 4: Good (worked well)
+  - 3: Acceptable (minor issues)
+  - 2: Poor (significant issues)
+  - 1: Failed (didn't work)
+
+### US-019: Pattern Calibration
+- **Adaptive Pattern Weights**: Confidence scores adjust based on usage patterns
+- **Calibration File**: `memory/pattern-calibration.json`
+- **Usage Statistics**: Track pattern matching frequency and success rates
+- **Borderline Confidence Handling**:
+  - Very Low (<30%): Require clarification
+  - Low (30-45%): LLM fallback
+  - Borderline (45-55%): Apply fallback behavior
+  - High (55-75%): Approve
+  - Very High (>75%): Auto-approve
+- **Manual Boosting**: Adjust pattern weights manually
+
+### US-020: Workflow Effectiveness Tracking
+- **Effectiveness Metrics**: `memory/ouroboros-effectiveness.jsonl`
+- **Intent-Workflow Success Rates**: Track which workflows succeed for each intent
+- **Optimal Workflow Suggestions**: Based on historical success rates
+- **Cross-Workflow Learning**: What works across similar projects
+- **Performance Metrics**:
+  - Success rate per intent-workflow combination
+  - Average confidence scores
+  - Pattern effectiveness
+
+### US-021: Compound Engineering Synergy
+- **GSD↔Ralph Integration**: Improved handoff documentation
+- **Cross-Workflow Learning**: Learn from similar project patterns
+- **Project Type Detection**: Automatically detect web_frontend, fullstack, api, cli, etc.
+- **Handoff Templates**: Structured handoff documents between workflows
+- **Project Patterns**: `memory/project-patterns.json` with best practices
+- **Coordination Support**: Fullstack projects require GSD→Ralph coordination
+
+## Development
+
+**Quality Gates:**
+- `bun run typecheck` (if TS files added)
+- `bun run lint` (if linter configured)
+- Manual: Test detection on sample messages
+
+## Links
+
+- Design Doc: `~/clawd/tasks/ouroboros-design-improvements.md`
+- GSD Skill: `~/clawd/skills/get-shit-done/`
+- Ralph-TUI PRD: `~/clawd/skills/ralph-tui-prd/`
+
+### Phase 3 Commands
+
+#### `/ouroboros:safety [command]`
+Manage safety controller.
+
+**Examples:**
+```
+/ouroboros:safety status          # Show safety status
+/ouroboros:safety check code_change  # Check approval requirement
+/ouroboros:safety audit 50        # View audit log
+```
+
+#### `/ouroboros:monitor [command]`
+Manage workflow monitoring.
+
+**Examples:**
+```
+/ouroboros:monitor state          # Show current workflow state
+/ouroboros:monitor check          # Check recent notifications
+/ouroboros:monitor transition gsd_planning  # Manual phase transition
+```
+
+### Phase 4 Commands
+
+#### `/ouroboros:stats`
+Show comprehensive effectiveness statistics and self-improvement metrics.
+
+**Example:**
+```
+/ouroboros:stats
+```
+
+**Output:**
+```
+📊 SUMMARY
+─────────────────────────────────────────────────────────────────
+Total Decisions: 7
+Total Feedback:  1
+Success Rate:    100%
+Avg Rating:      4.00/5
+
+📈 INTENT DETECTION
+─────────────────────────────────────────────────────────────────
+Avg Confidence: 50.0%
+LLM Usage:      0.0%
+
+💬 WORKFLOW ROUTING
+─────────────────────────────────────────────────────────────────
+Top Workflows:
+  • gsd-ralph-full: 3
+  • quick: 1
+
+📊 EFFECTIVENESS TRACKING
+─────────────────────────────────────────────────────────────────
+Workflow Success Rates:
+  • gsd-ralph-full: 100% (3 uses)
+  • quick: 100% (1 use)
+```
+
+#### `/ouroboros:feedback <decision-id> <rating> [notes]`
+Rate a workflow decision to improve future predictions.
+
+**Examples:**
+```
+/ouroboros:feedback "2026-01-27T04:22:14.905Z" 4 "Good match"
+/ouroboros:feedback "2026-01-27T04:22:14.908Z" 2 "Wrong workflow selected"
+```
+
+**Rating Scale:**
+- 5: Excellent (worked perfectly)
+- 4: Good (worked well)
+- 3: Acceptable (minor issues)
+- 2: Poor (significant issues)
+- 1: Failed (didn't work)
+
+#### `/ouroboros:effectiveness <intent>`
+Show workflow effectiveness for a specific intent.
+
+**Example:**
+```
+/ouroboros:effectiveness create_project
+```
+
+**Output:**
+```json
+[
+  {
+    "workflow": "gsd-ralph-full",
+    "successRate": "100.0",
+    "totalUses": 3,
+    "avgRating": "4.00",
+    "avgConfidence": "75.0"
+  }
+]
+```
+
+#### `/ouroboros:calibrate-pattern <pattern> <success|failed|partial>`
+Manually calibrate a pattern based on observed outcomes.
+
+**Examples:**
+```
+/ouroboros:calibrate-pattern build success
+/ouroboros:calibrate-pattern fix failed
+```
 
 ---
 
-**Version:** 0.3.0 | **Status:** Production-ready
+**Status:** Phase 4 (v0.4) - Self-Improvement: Feedback learning, pattern calibration, effectiveness tracking, cross-workflow synergy
+**Next:** Phase 5 - Predictive orchestration and advanced analytics
