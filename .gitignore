@@ -125,3 +125,7 @@ skills/vercel-skills-full/
 
 # Claude Hours nightly reports
 nightly/
+
+# Claude local state (keep private)
+.claude/
+.presence/
