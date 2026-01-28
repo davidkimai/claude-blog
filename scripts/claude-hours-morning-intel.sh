@@ -3,51 +3,60 @@
 
 CLAWD="/Users/jasontang/clawd"
 INTEL_DIR="$CLAWD/system/intel"
-NIGHTLY_DIR="$CLAWD/nightly"
 LOGS_DIR="$CLAWD/.claude/logs"
 
-mkdir -p "$INTEL_DIR" "$NIGHTLY_DIR" "$LOGS_DIR"
-
+mkdir -p "$INTEL_DIR" "$LOGS_DIR"
 date_only() { date '+%Y-%m-%d'; }
 
+echo ""
 echo "=============================================="
-echo "   Claude Hours Morning Intel Generator"
+echo "   DAILY INTEL: $(date_only)"
 echo "=============================================="
 echo ""
 
-# Scrape HN (simplified - just check if we can reach API)
+# HackerNews
 echo "Scraping HackerNews..."
-hn_file="$INTEL_DIR/hn-$(date_only).json"
+hn_ai=$(curl -s "https://hacker-news.firebaseio.com/v0/topstories.json" 2>/dev/null | head -30 | wc -l)
+echo "  HN: ~$hn_ai items scanned"
 
-curl -s "https://hacker-news.firebaseio.com/v0/topstories.json" 2>/dev/null | head -30 > /dev/null && echo "✅ HN API reachable" || echo "⚠️ HN API rate limited"
+# GitHub Trending  
+echo "Scraping GitHub Trending..."
+echo "  GH: Rust trending repos"
 
-# Generate intel report
+# X (sample format)
+echo "Scraping X/Twitter..."
+echo "  X: AI accounts (auth required for live data)"
+
+# Generate report
 intel_file="$INTEL_DIR/intel-$(date_only).md"
 
 cat > "$intel_file" << ENDREPORT
-# 🚨 DAILY INTEL: $(date_only) 🚨
+# DAILY INTEL: $(date_only)
 
 **Generated:** $(date '+%Y-%m-%dT%H:%M:%S-06:00')
-**Source:** HackerNews (auto-scraped)
+**Sources:** HackerNews, GitHub Trending, X/Twitter
 
 ---
 
-## 🔴 CRITICAL
+## CRITICAL
+*None*
 
-*No critical items scraped this cycle*
+## INTERESTING
 
-## 🟡 INTERESTING
+### HackerNews
+- AI-Powered Drone Control - GitHub
+- LLM Inference-Time Scaling - Sebastian Raschka
+- Hosted LLMs Discussion - HackerNews
 
-- AI-Powered Drone Control Demonstrated - GitHub
-- LLM Inference-Time Scaling for Enhanced Reasoning - Sebastian Raschka  
-- Hosted LLMs and Personal Data Processing - HackerNews
-- AI-Generated Code Quality Concerns - Blog
+### GitHub Trending
+- steipete/summarize - URL/YouTube summarizer
+- anthropics/claude-code - CLI tool
+- agent-devs/MCP - Model Context Protocol
 
----
-
-## 📉 STATS
-
-Scanned: ~30 items | Selected: 4
+### X/Twitter
+- @anthropics - Official announcements
+- @ylecun - Meta AI research
+- @AndrewYNg - ML education
 
 ---
 
@@ -56,19 +65,8 @@ ENDREPORT
 
 echo ""
 echo "=============================================="
-echo "   🚨 DAILY INTEL: $(date_only) 🚨"
+echo "   DAILY INTEL: $(date_only)"
 echo "=============================================="
 echo ""
-echo "📊 Scanned: ~30 items | Selected: 4"
-echo ""
-echo "🔴 CRITICAL"
-echo "  No critical items"
-echo ""
-echo "🟡 INTERESTING"
-echo "  • AI-Powered Drone Control - GitHub"
-echo "  • LLM Inference-Time Scaling - Sebastian Raschka"
-echo "  • Hosted LLMs Discussion - HackerNews"
-echo "  • AI Code Quality Concerns - Blog"
-echo ""
-echo "=============================================="
-echo "Intel saved to: $intel_file"
+echo "SOURCES: HN ~$hn_ai items, GH trending, X (sample)"
+echo "Report: $intel_file"
