@@ -84,8 +84,8 @@ fi
 echo ""
 
 # === PRESENCE & PERSONALITY ===
-if [ -d "$HOME/.presence" ]; then
-    PRESENCE_FILES=$(ls -1 "$HOME/.presence"/*.md "$HOME/.presence"/*.json 2>/dev/null | wc -l)
+if [ -d "/Users/jasontang/clawd/.presence" ]; then
+    PRESENCE_FILES=$(ls -1 "/Users/jasontang/clawd/.presence"/*.md "/Users/jasontang/clawd/.presence"/*.json 2>/dev/null | wc -l)
     echo -e "${CYAN}🎯 Claude Presence${NC}: $PRESENCE_FILES files"
 else
     echo -e "${CYAN}🎯 Claude Presence${NC}: ${YELLOW}Not initialized${NC}"

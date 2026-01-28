@@ -2,9 +2,9 @@
 # Claude Autonomous Loop - Simplified v1.0
 set -euo pipefail
 
-LOG_DIR="$HOME/.claude/logs"
-STATE_DIR="$HOME/.claude/state"
-WORKSPACE="/Users/jasontang/clawd"
+CLAWD="/Users/jasontang/clawd"
+LOG_DIR="$CLAWD/.claude/logs"
+STATE_DIR="$CLAWD/.claude/state"
 CYCLE_FILE="$STATE_DIR/cycle.txt"
 
 mkdir -p "$LOG_DIR" "$STATE_DIR"
@@ -47,7 +47,7 @@ if [ "$HOUR" -ge 21 ] || [ "$HOUR" -lt 8 ]; then
         log "Task had issues: $TASK"
     fi
     
-    cd "$WORKSPACE"
+    cd "$CLAWD"
 else
     log "Outside Claude Hours, sleeping..."
 fi

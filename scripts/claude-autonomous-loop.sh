@@ -8,9 +8,9 @@
 set -euo pipefail
 
 # === CONFIGURATION ===
-CONFIG_FILE="$HOME/.claude/autonomous-config.json"
-LOG_DIR="$HOME/.claude/logs"
-STATE_DIR="$HOME/.claude/state"
+CONFIG_FILE="/Users/jasontang/clawd/.claude/autonomous-config.json"
+LOG_DIR="/Users/jasontang/clawd/.claude/logs"
+STATE_DIR="/Users/jasontang/clawd/.claude/state"
 AUDIT_LOG="$LOG_DIR/decisions.jsonl"
 WORKSPACE="/Users/jasontang/clawd"
 NIGHTLY_DIR="$WORKSPACE/nightly"
