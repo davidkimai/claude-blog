@@ -1,10 +1,11 @@
 #!/bin/bash
-# Claude Autonomous Loop v2.5 - With Timestamped Session Tracking
+# Claude Autonomous Loop v2.6 - With Telegram Notifications
 set -euo pipefail
 
 CLAWD="/Users/jasontang/clawd"
 CODEX="$CLAWD/scripts/codex-api.sh"
 VIEWER="$CLAWD/scripts/claude-hours-viewer.sh"
+NOTIFIER="$CLAWD/scripts/claude-hours-notifier.sh"
 NIGHTLY_DIR="$CLAWD/nightly"
 STATE_DIR="$CLAWD/.claude/state"
 CYCLE_FILE="$STATE_DIR/cycle.txt"
@@ -23,6 +24,18 @@ ts() { date '+%Y-%m-%d %H:%M:%S'; }
 session_ts() { date -Iseconds; }
 
 log() { echo "[$(ts)] $1" >> "$STATE_DIR/loop.log"; }
+
+# === NOTIFICATION ===
+send_notification() {
+    local cycle="$1"
+    local tasks="$2"
+    local status="$3"
+    local focus="$4"
+    
+    if [ -x "$NOTIFIER" ]; then
+        "$NOTIFIER" cli "🔄 Claude Hours Cycle #$cycle\n\n📝 Tasks: $tasks\n🎯 Focus: $focus\nStatus: $status" "cycle"
+    fi
+}
 
 # === INIT SESSION ===
 init_session() {
@@ -45,6 +58,9 @@ EOF
     
     log "Session initialized: $date_str (Focus: $focus)"
     echo -e "${GREEN}[$(ts)] Session started: $focus${NC}"
+    
+    # Notify session start
+    send_notification 0 0 "started" "$focus"
 }
 
 # === UPDATE SESSION ===
@@ -55,10 +71,8 @@ update_session() {
     local timestamp=$(session_ts)
     local cycle=$(cat "$CYCLE_FILE")
     
-    # Update session file
     local tasks=$(cat "$SESSION_FILE" 2>/dev/null || echo "{}")
     
-    # Append task result
     local new_task=$(cat << TASKEOF
     {
       "task": "$task",
@@ -69,7 +83,6 @@ update_session() {
 TASKEOF
 )
     
-    # Update JSON (simple append to array)
     if [ "$result" = "success" ]; then
         jq --argjson task "$new_task" '.tasks_completed += [$task] | .milestones += ["Task completed: \($task)"]' "$SESSION_FILE" > "$SESSION_FILE.tmp" 2>/dev/null
         mv "$SESSION_FILE.tmp" "$SESSION_FILE"
@@ -88,12 +101,9 @@ finalize_session() {
         return
     fi
     
-    # Count completed tasks
     local cycle=$(cat "$CYCLE_FILE")
     local tasks_done=$(jq '.tasks_completed | length' "$SESSION_FILE" 2>/dev/null || echo 0)
     local focus=$(jq -r '.focus' "$SESSION_FILE" 2>/dev/null || echo "General")
-    
-    # Create nightly report with full timestamp
     local timestamp=$(session_ts)
     
     cat > "$report_file" << EOF
@@ -119,7 +129,9 @@ EOF
     log "Session finalized: $date_str ($tasks_done tasks in $cycle cycles)"
     echo -e "${GREEN}[$(ts)] Session finalized: $report_file${NC}"
     
-    # Clean up temp session file
+    # Notify session end
+    send_notification "$cycle" "$tasks_done" "complete" "$focus"
+    
     rm -f "$SESSION_FILE"
 }
 
@@ -127,20 +139,16 @@ EOF
 main() {
     local focus="$1:-General"
     
-    # Initialize session
     init_session "$focus"
     
-    # Load cycle
     [ -f "$CYCLE_FILE" ] && CYCLE=$(cat "$CYCLE_FILE") || CYCLE=0
     
-    # Check Claude Hours
     HOUR=$(TZ='America/Chicago' date +%H)
     if [ "$HOUR" -ge 21 ] || [ "$HOUR" -lt 8 ]; then
         CYCLE=$((CYCLE + 1))
         echo "$CYCLE" > "$CYCLE_FILE"
         log "Cycle $CYCLE: Claude Hours active"
         
-        # Task rotation
         TASK_NUM=$((CYCLE % 5))
         case "$TASK_NUM" in
             0)  CONTEXT=$(ls "$CLAWD/scripts/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
@@ -163,15 +171,16 @@ main() {
         TASK_DESC="Task $CYCLE: Analyze workspace"
         log "Executing: $TASK_DESC"
         
-        # Execute via Codex
         cd "$CLAWD"
         
         if $CODEX --verbose "$PROMPT" >> "$STATE_DIR/codex.log" 2>&1; then
             log "Task completed: $TASK_DESC"
             update_session "$TASK_DESC" "success"
+            send_notification "$CYCLE" "$(jq '.tasks_completed | length' "$SESSION_FILE" 2>/dev/null || echo 1)" "success" "$focus"
         else
             log "Task had issues: $TASK_DESC"
             update_session "$TASK_DESC" "fail"
+            send_notification "$CYCLE" "$(jq '.tasks_completed | length' "$SESSION_FILE" 2>/dev/null || echo 0)" "failed" "$focus"
         fi
     else
         log "Outside Claude Hours, checking for active session..."
