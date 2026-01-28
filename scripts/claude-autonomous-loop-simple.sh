@@ -1,6 +1,5 @@
 #!/bin/bash
-# Claude Autonomous Loop v2.7 - Time Series Notifications
-set -euo pipefail
+# Claude Autonomous Loop v2.8 - Enhanced Reporting
 
 CLAWD="/Users/jasontang/clawd"
 CODEX="$CLAWD/scripts/codex-api.sh"
@@ -13,22 +12,19 @@ SESSION_FILE="$STATE_DIR/current-session.json"
 
 mkdir -p "$NIGHTLY_DIR" "$STATE_DIR"
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
-NC='\033[0m'
-
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
 session_ts() { date -Iseconds; }
 duration_ts() {
     local started="$1"
     local now=$(date +%s)
     local diff=$((now - started))
-    local mins=$((diff / 60))
-    local secs=$((diff % 60))
-    echo "${mins}m ${secs}s"
+    local hours=$((diff / 3600))
+    local mins=$(((diff % 3600) / 60))
+    if [ $hours -gt 0 ]; then
+        echo "${hours}h ${mins}m"
+    else
+        echo "${mins}m"
+    fi
 }
 
 log() { echo "[$(ts)] $1" >> "$STATE_DIR/loop.log"; }
@@ -44,18 +40,17 @@ init_session() {
   "timestamp": "$timestamp",
   "session_id": "claude-hours-$date_str",
   "focus": "$focus",
-  "started_at": "$(date +%s)",
+  "started_at": $(date +%s),
   "cycle": 0,
   "tasks_completed": [],
   "outputs": [],
-  "milestones": []
+  "milestones": [],
+  "duration": "0m"
 }
 EOF
     
     log "Session initialized: $date_str (Focus: $focus)"
-    echo -e "${GREEN}[$(ts)] Session started: $focus${NC}"
     
-    # Notify session start
     "$NOTIFIER" notify_started "$focus"
 }
 
@@ -64,13 +59,13 @@ update_session() {
     local task="$1"
     local result="$2"
     local summary="$3"
+    local output_file="$4"
     
     local timestamp=$(session_ts)
     local cycle=$(cat "$CYCLE_FILE")
     local started_at=$(jq -r '.started_at' "$SESSION_FILE")
     local duration=$(duration_ts "$started_at")
     
-    local tasks=$(cat "$SESSION_FILE" 2>/dev/null || echo "{}")
     local task_count=$(jq '.tasks_completed | length' "$SESSION_FILE" 2>/dev/null || echo 0)
     
     local new_task=$(cat << TASKEOF
@@ -80,7 +75,8 @@ update_session() {
   "summary": "$summary",
   "timestamp": "$timestamp",
   "cycle": $cycle,
-  "duration": "$duration"
+  "duration": "$duration",
+  "output": "$output_file"
 }
 TASKEOF
 )
@@ -88,10 +84,15 @@ TASKEOF
     if [ "$result" = "success" ]; then
         jq --argjson task "$new_task" \
            --arg summary "$summary" \
-           '.tasks_completed += [$task] | .milestones += [$summary]' \
+           --arg output "$output_file" \
+           '.tasks_completed += [$task] | .milestones += [$summary] | .outputs += [$output]' \
            "$SESSION_FILE" > "$SESSION_FILE.tmp" 2>/dev/null
         mv "$SESSION_FILE.tmp" "$SESSION_FILE"
     fi
+    
+    # Update duration
+    jq --arg duration "$duration" '.duration = $duration' "$SESSION_FILE" > "$SESSION_FILE.tmp" 2>/dev/null
+    mv "$SESSION_FILE.tmp" "$SESSION_FILE"
     
     log "Task updated: $task -> $result ($duration)"
 }
@@ -113,6 +114,14 @@ finalize_session() {
     local duration=$(duration_ts "$started_at")
     local timestamp=$(session_ts)
     
+    # Get outputs
+    local outputs=$(jq -r '.outputs[] // ""' "$SESSION_FILE" 2>/dev/null | grep -v '^$' | head -10 | sed 's/^/- /')
+    
+    # Format time range
+    local start_time=$(date -d @$started_at '+%I:%M %p' 2>/dev/null || echo "21:00")
+    local end_time=$(date '+%I:%M %p')
+    
+    # Build JSON report
     cat > "$report_file" << EOF
 {
   "timestamp": "$timestamp",
@@ -121,7 +130,7 @@ finalize_session() {
   "total_cycles": $cycle,
   "tasks_completed": $tasks_done,
   "duration": "$duration",
-  "completed_tasks": $(jq '.tasks_completed | tojson' "$SESSION_FILE" 2>/dev/null || echo "[]"),
+  "outputs": $(jq '.outputs | tojson' "$SESSION_FILE" 2>/dev/null || echo "[]"),
   "milestones": $(jq '.milestones | tojson' "$SESSION_FILE" 2>/dev/null || echo "[]"),
   "session_summary": {
     "date": "$date_str",
@@ -129,8 +138,7 @@ finalize_session() {
     "total_cycles": $cycle,
     "tasks_completed": $tasks_done,
     "duration": "$duration",
-    "started_at": "$(date -d @$started_at '+%Y-%m-%d %H:%M:%S')",
-    "completed_at": "$(date -d @$timestamp '+%Y-%m-%d %H:%M:%S')"
+    "time_range": "$start_time → $end_time"
   },
   "time_series": {
     "start": "$(date -d @$started_at '+%Y-%m-%dT%H:%M:%S-06:00')",
@@ -141,10 +149,9 @@ finalize_session() {
 EOF
     
     log "Session finalized: $date_str ($tasks_done tasks in $cycle cycles, $duration)"
-    echo -e "${GREEN}[$(ts)] Session finalized: $report_file${NC}"
     
-    # Notify session complete
-    "$NOTIFIER" notify_complete "$cycle" "$tasks_done" "$focus" "$duration"
+    # Notify complete with outputs
+    "$NOTIFIER" notify_complete "$cycle" "$tasks_done" "$focus" "$duration" "$outputs" "$start_time" "$end_time"
     
     rm -f "$SESSION_FILE"
 }
@@ -165,25 +172,30 @@ main() {
         
         TASK_NUM=$((CYCLE % 5))
         case "$TASK_NUM" in
-            0)  CONTEXT=$(ls "$CLAWD/scripts/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-                PROMPT="Analyze /Users/jasontang/clawd/scripts/: $CONTEXT. Which need improvement? Give 2 specific recommendations."
+            0)  CONTEXT=$(ls "$CLAWD/scripts/" 2>/dev/null | head -5 | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Analyze scripts in /Users/jasontang/clawd/scripts/: $CONTEXT. Identify 2-3 scripts needing improvement and recommend specific changes."
                 TASK_TYPE="Script Analysis"
+                OUTPUT_FILE="scripts/improvement-notes.md"
                 ;;
-            1)  CONTEXT=$(ls "$CLAWD/docs/guides/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-                PROMPT="Review docs in /Users/jasontang/clawd/docs/guides/: $CONTEXT. Note gaps and missing guides."
+            1)  CONTEXT=$(ls "$CLAWD/docs/guides/" 2>/dev/null | head -5 | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Review docs in /Users/jasontang/clawd/docs/guides/: $CONTEXT. List gaps and suggest 2 new guides to create."
                 TASK_TYPE="Documentation Review"
+                OUTPUT_FILE="docs/guide-gaps.md"
                 ;;
-            2)  CONTEXT=$(ls "$CLAWD/memory/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-                PROMPT="Analyze memory files: $CONTEXT. Identify patterns and suggest improvements."
+            2)  CONTEXT=$(ls "$CLAWD/memory/" 2>/dev/null | head -5 | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Analyze recent memory files: $CONTEXT. Identify patterns in work and suggest memory improvements."
                 TASK_TYPE="Memory Analysis"
+                OUTPUT_FILE="memory/patterns-identified.md"
                 ;;
-            3)  CONTEXT=$(ls -d "$CLAWD"/*/ 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-                PROMPT="Review workspace structure: $CONTEXT. Note reorganization opportunities."
+            3)  CONTEXT=$(ls -d "$CLAWD"/*/ 2>/dev/null | head -5 | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Review workspace structure: $CONTEXT. Note reorganization opportunities and file organization improvements."
                 TASK_TYPE="Workspace Audit"
+                OUTPUT_FILE="system/reorg-notes.md"
                 ;;
-            4)  CONTEXT=$(ls "$CLAWD/skills/" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-                PROMPT="Evaluate skills: $CONTEXT. List top 5 capabilities and identify gaps."
+            4)  CONTEXT=$(ls "$CLAWD/skills/" 2>/dev/null | head -5 | tr '\n' ',' | sed 's/,$//')
+                PROMPT="Evaluate skills directory: $CONTEXT. List top capabilities and identify 2 skill gaps to fill."
                 TASK_TYPE="Skill Assessment"
+                OUTPUT_FILE="skills/gap-analysis.md"
                 ;;
         esac
         
@@ -193,15 +205,15 @@ main() {
         cd "$CLAWD"
         
         if $CODEX --verbose "$PROMPT" >> "$STATE_DIR/codex.log" 2>&1; then
-            SUMMARY="Completed $TASK_TYPE - improvements identified"
+            SUMMARY="$TASK_TYPE complete — recommendations generated"
             log "Task completed: $TASK_DESC"
-            update_session "$TASK_DESC" "success" "$SUMMARY"
-            "$NOTIFIER" notify_cycle "$CYCLE" "$TASK_TYPE" "Success" "$(jq '.tasks_completed | length' "$SESSION_FILE")" "$focus"
+            update_session "$TASK_TYPE" "success" "$SUMMARY" "$OUTPUT_FILE"
+            "$NOTIFIER" notify_cycle "$CYCLE" "$TASK_TYPE" "Success" "$(jq '.tasks_completed | length' "$SESSION_FILE")" "$focus" "$(jq -r '.duration' "$SESSION_FILE")"
         else
             SUMMARY="$TASK_TYPE encountered issues"
             log "Task had issues: $TASK_DESC"
-            update_session "$TASK_DESC" "fail" "$SUMMARY"
-            "$NOTIFIER" notify_cycle "$CYCLE" "$TASK_TYPE" "Issues encountered" "$(jq '.tasks_completed | length' "$SESSION_FILE")" "$focus"
+            update_session "$TASK_TYPE" "fail" "$SUMMARY" ""
+            "$NOTIFIER" notify_cycle "$CYCLE" "$TASK_TYPE" "Issues" "$(jq '.tasks_completed | length' "$SESSION_FILE")" "$focus" "$(jq -r '.duration' "$SESSION_FILE")"
         fi
     else
         log "Outside Claude Hours, checking for active session..."
@@ -243,12 +255,5 @@ case "${1:-run}" in
         ;;
     help|*)
         echo "Usage: $0 <run|init|finalize|status|view|history|weekly|help>"
-        echo "  run [focus]     - Run one cycle (default)"
-        echo "  init <focus>    - Start new session"
-        echo "  finalize        - End session and save report"
-        echo "  status          - Show current session"
-        echo "  view [date]     - View session (today or YYYY-MM-DD)"
-        echo "  history [N]     - View recent sessions"
-        echo "  weekly          - Weekly summary"
         ;;
 esac
