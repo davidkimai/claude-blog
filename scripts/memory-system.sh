@@ -134,6 +134,13 @@ synthesize_weekly() {
     
     log "Running weekly synthesis for week starting $week..."
     
+    # THE COMPOUNDING ENGINE (from @spacepixel's guide)
+    # 1. Review newly added facts
+    # 2. Update relevant summaries  
+    # 3. Mark contradicted facts as historical
+    # 4. Produce clean, current snapshot
+    
+    echo "Running the compounding engine..."    
     # Collect all daily notes for the week
     local daily_notes=""
     for i in {0..6}; do
