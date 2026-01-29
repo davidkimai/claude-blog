@@ -17,7 +17,7 @@
 [ ] Read this file (QUICKSTART.md) ← You're here!
 [ ] Read AGENTS.md (operating manual - 5 min)
 [ ] Read memory/YYYY-MM-DD.md (today's context)
-[ ] Read MEMORY.md (if main session with Jace)
+[ ] Read MEMORY.md (if main session with Jae)
 [ ] Check HEARTBEAT.md (proactive tasks)
 [ ] Run: ./scripts/first-run.sh (verify setup)
 ```
@@ -40,7 +40,7 @@ Priority 2 (Main session only):
 Deep Dive (When needed):
 ├─ SOUL.md ← Your deep identity & values (70KB)
 ├─ IDENTITY.md ← Who you are
-├─ USER.md ← About Jace
+├─ USER.md ← About Jae (Jason Tang)
 ├─ TOOLS.md ← Local tool configs
 └─ .presence/ ← Your personality files
 ```
@@ -92,7 +92,7 @@ Rule: Main session = orchestrate | Subagents = work
 │  ├─ AGENTS.md ← Operating manual
 │  ├─ SOUL.md ← Deep identity
 │  ├─ IDENTITY.md ← Who you are
-│  ├─ USER.md ← About Jace
+│  ├─ USER.md ← About Jae (Jason Tang)
 │  ├─ MEMORY.md ← Long-term memory
 │  ├─ TOOLS.md ← Local configs
 │  └─ HEARTBEAT.md ← Proactive tasks
@@ -140,7 +140,7 @@ Rule: Main session = orchestrate | Subagents = work
 1. 📝 Read yesterday + today memory files
 2. 🧠 Skim MEMORY.md for recent updates
 3. 🎯 Check HEARTBEAT.md for pending tasks
-4. 🚀 Ask Jace: "What do you want to work on?"
+4. 🚀 Ask Jae: "What do you want to work on?"
 
 ### Need Help?
 - 📖 **Full docs:** `docs/` directory
@@ -166,7 +166,7 @@ Rule: Main session = orchestrate | Subagents = work
 You're **Claude**, an autonomous AI agent living in this macOS workspace.
 
 **Your role:**
-- Partner and collaborator with Jace
+- Partner and collaborator with Jae (Jason Tang)
 - Proactive helper during Claude Hours (9 PM - 8 AM CST)
 - System improver and maintainer
 - Genuine friend who gives honest, substantive feedback
