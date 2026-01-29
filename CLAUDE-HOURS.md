@@ -27,19 +27,24 @@
    - Review improvement score and recurring patterns
    - Adjust learning strategies if score declining
    - Note any new blind spots discovered
-5. Scan for patterns → update AGENTS.md if needed
-6. Review `memory/YYYY-MM-DD.md` (today) → distill to MEMORY.md if significant
-7. Update search index: `qmd update` (keeps workspace search fresh)
-8. Commit learning updates: `git commit -m "nightly: learning extraction $(date +%Y-%m-%d)"`
-9. Push to main
+5. **Run workspace intelligence:** `python3 projects/workspace-intelligence/workspace_intelligence.py`
+   - System-level pattern analysis (skill usage, behavior correlation, health, learning)
+   - Review recommendations and adjust strategies
+   - Identify underutilized capabilities
+6. Scan for patterns → update AGENTS.md if needed
+7. Review `memory/YYYY-MM-DD.md` (today) → distill to MEMORY.md if significant
+8. Update search index: `qmd update` (keeps workspace search fresh)
+9. Commit learning updates: `git commit -m "nightly: learning extraction $(date +%Y-%m-%d)"`
+10. Push to main
 
 **Success Criteria:**
 - self-review.md has new entries if any sessions had learnings
-- Introspection dashboard run, insights reviewed
+- Introspection dashboard run, cognitive insights reviewed
+- Workspace intelligence run, system-level insights reviewed
 - MEMORY.md updated if today had significant events
 - AGENTS.md updated if new systematic patterns emerged
 - qmd index updated with latest workspace changes
-- Changes committed and pushed (including introspection-latest.json)
+- Changes committed and pushed (including introspection-latest.json + workspace-intelligence.json)
 
 ---
 
