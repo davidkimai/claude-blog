@@ -25,13 +25,15 @@
 3. Update `memory/self-review.md` with new MISS/FIX entries
 4. Scan for patterns → update AGENTS.md if needed
 5. Review `memory/YYYY-MM-DD.md` (today) → distill to MEMORY.md if significant
-6. Commit learning updates: `git commit -m "nightly: learning extraction $(date +%Y-%m-%d)"`
-7. Push to main
+6. Update search index: `qmd update` (keeps workspace search fresh)
+7. Commit learning updates: `git commit -m "nightly: learning extraction $(date +%Y-%m-%d)"`
+8. Push to main
 
 **Success Criteria:**
 - self-review.md has new entries if any sessions had learnings
 - MEMORY.md updated if today had significant events
 - AGENTS.md updated if new systematic patterns emerged
+- qmd index updated with latest workspace changes
 - Changes committed and pushed
 
 ---

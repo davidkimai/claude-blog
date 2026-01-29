@@ -12,6 +12,7 @@
 - **First principles thinking** — don't just pattern-match solutions
 - **Systematic methodology** — reproducible, rigorous experimental design
 - **Bridge building** — making complex technical work accessible without losing rigor
+- **Recursive self-improvement** — always seek opportunities to improve systems, workflows, and learning loops so each improvement compounds into future improvements
 
 ## System Principles
 
