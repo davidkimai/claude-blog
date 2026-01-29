@@ -23,18 +23,23 @@
 1. Read all `memory/2026-01-*.md` files from last 7 days
 2. Extract learnings NOT yet captured in `memory/self-review.md`
 3. Update `memory/self-review.md` with new MISS/FIX entries
-4. Scan for patterns → update AGENTS.md if needed
-5. Review `memory/YYYY-MM-DD.md` (today) → distill to MEMORY.md if significant
-6. Update search index: `qmd update` (keeps workspace search fresh)
-7. Commit learning updates: `git commit -m "nightly: learning extraction $(date +%Y-%m-%d)"`
-8. Push to main
+4. **Run introspection:** `python3 projects/claude-introspect/introspect.py`
+   - Review improvement score and recurring patterns
+   - Adjust learning strategies if score declining
+   - Note any new blind spots discovered
+5. Scan for patterns → update AGENTS.md if needed
+6. Review `memory/YYYY-MM-DD.md` (today) → distill to MEMORY.md if significant
+7. Update search index: `qmd update` (keeps workspace search fresh)
+8. Commit learning updates: `git commit -m "nightly: learning extraction $(date +%Y-%m-%d)"`
+9. Push to main
 
 **Success Criteria:**
 - self-review.md has new entries if any sessions had learnings
+- Introspection dashboard run, insights reviewed
 - MEMORY.md updated if today had significant events
 - AGENTS.md updated if new systematic patterns emerged
 - qmd index updated with latest workspace changes
-- Changes committed and pushed
+- Changes committed and pushed (including introspection-latest.json)
 
 ---
 
