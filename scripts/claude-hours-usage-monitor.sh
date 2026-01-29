@@ -1,5 +1,6 @@
 #!/bin/bash
-# Claude Hours Usage Monitor - Simple version using cached codexbar data
+# Claude Hours Usage Monitor - Multi-provider version
+# Tracks Codex, Claude, Gemini, and Antigravity usage
 
 CLAWD="/Users/jasontang/clawd"
 STATE_DIR="$CLAWD/.claude/state"
@@ -9,18 +10,32 @@ ALERT_THRESHOLD=80  # Alert at 80% usage
 
 mkdir -p "$STATE_DIR"
 
-# Update cache (run manually or via cron)
+# Update cache for all providers
 update_cache() {
-    echo "Updating usage cache..."
-    codexbar usage --provider codex --json --pretty 2>/dev/null > "$USAGE_CACHE.tmp"
+    echo "Updating usage cache for all providers..."
     
-    if [ -s "$USAGE_CACHE.tmp" ]; then
-        mv "$USAGE_CACHE.tmp" "$USAGE_CACHE"
+    local providers=("codex" "claude" "gemini" "antigravity")
+    local results="[]"
+    
+    for provider in "${providers[@]}"; do
+        echo "  Fetching $provider..."
+        local data=$(codexbar usage --provider "$provider" --json --pretty 2>/dev/null)
+        
+        if [ -n "$data" ] && [ "$data" != "[]" ]; then
+            results=$(echo "$results" | jq --argjson new "$data" '. + $new')
+            echo "    ✓ $provider fetched"
+        else
+            echo "    ✗ $provider failed"
+        fi
+    done
+    
+    if [ "$results" != "[]" ]; then
+        echo "$results" > "$USAGE_CACHE"
+        echo ""
         echo "✓ Cache updated: $(date)"
         return 0
     else
-        echo "✗ Cache update failed"
-        rm -f "$USAGE_CACHE.tmp"
+        echo "✗ All providers failed"
         return 1
     fi
 }
@@ -30,7 +45,70 @@ get_cycle() {
     cat "$STATE_DIR/cycle.txt" 2>/dev/null || echo "0"
 }
 
-# Parse cached data
+# Parse provider-specific data
+parse_provider() {
+    local provider="$1"
+    local data="$2"
+    
+    case "$provider" in
+        codex)
+            local usage=$(echo "$data" | jq -r '.openaiDashboard.secondaryLimit.usedPercent // 0')
+            local reset=$(echo "$data" | jq -r '.openaiDashboard.secondaryLimit.resetDescription // "Unknown"')
+            local plan=$(echo "$data" | jq -r '.openaiDashboard.accountPlan // "Unknown"')
+            echo "$usage|$reset|$plan"
+            ;;
+        claude)
+            local usage=$(echo "$data" | jq -r '.usage.secondary.usedPercent // 0')
+            local reset=$(echo "$data" | jq -r '.usage.secondary.resetDescription // "Unknown"')
+            local cost=$(echo "$data" | jq -r '.usage.providerCost.used // 0')
+            local limit=$(echo "$data" | jq -r '.usage.providerCost.limit // 0')
+            echo "$usage|$reset|$cost/$limit USD"
+            ;;
+        gemini)
+            local usage=$(echo "$data" | jq -r '.usage.primary.usedPercent // 0')
+            local reset=$(echo "$data" | jq -r '.usage.primary.resetDescription // "Unknown"')
+            local method=$(echo "$data" | jq -r '.usage.loginMethod // "Unknown"')
+            echo "$usage|$reset|$method"
+            ;;
+        antigravity)
+            local usage=$(echo "$data" | jq -r '.usage.primary.usedPercent // 0')
+            local reset=$(echo "$data" | jq -r '.usage.primary.resetsAt // "Unknown"')
+            local method=$(echo "$data" | jq -r '.usage.loginMethod // "Unknown"')
+            echo "$usage|$reset|$method"
+            ;;
+    esac
+}
+
+# Display provider status
+show_provider() {
+    local provider="$1"
+    local data="$2"
+    
+    if [ -z "$data" ] || [ "$data" = "null" ]; then
+        echo "  ⚠️  $provider: No data"
+        return 1
+    fi
+    
+    IFS='|' read -r usage reset extra <<< "$(parse_provider "$provider" "$data")"
+    
+    local emoji="✓"
+    local status="Healthy"
+    
+    if [ "${usage%.*}" -ge 95 ]; then
+        emoji="🚨"
+        status="CRITICAL"
+    elif [ "${usage%.*}" -ge "$ALERT_THRESHOLD" ]; then
+        emoji="⚠️"
+        status="CAUTION"
+    fi
+    
+    echo "  $emoji $provider: ${usage}% - $status"
+    echo "     Reset: $reset"
+    echo "     Info: $extra"
+    echo ""
+}
+
+# Get all provider data
 get_cached_usage() {
     if [ ! -f "$USAGE_CACHE" ]; then
         echo "No cache found. Run: $0 update"
@@ -40,52 +118,42 @@ get_cached_usage() {
     local age=$(($(date +%s) - $(stat -f %m "$USAGE_CACHE" 2>/dev/null || echo 0)))
     local age_hours=$((age / 3600))
     
-    echo "📊 Usage Data (cached $age_hours hours ago):"
+    echo "📊 Multi-Provider Usage Status (cached $age_hours hours ago):"
     echo ""
     
-    # Extract key metrics
-    local usage_pct=$(cat "$USAGE_CACHE" | jq -r '.[0].openaiDashboard.secondaryLimit.usedPercent // 0')
-    local reset_info=$(cat "$USAGE_CACHE" | jq -r '.[0].openaiDashboard.secondaryLimit.resetDescription // "Unknown"')
-    local plan=$(cat "$USAGE_CACHE" | jq -r '.[0].openaiDashboard.accountPlan // "Unknown"')
+    # Parse cache for each provider
+    local codex_data=$(cat "$USAGE_CACHE" | jq '.[] | select(.openaiDashboard != null)')
+    local claude_data=$(cat "$USAGE_CACHE" | jq '.[] | select(.provider == "claude")')
+    local gemini_data=$(cat "$USAGE_CACHE" | jq '.[] | select(.provider == "gemini")')
+    local antigravity_data=$(cat "$USAGE_CACHE" | jq '.[] | select(.provider == "antigravity")')
     
-    echo "  Plan: $plan"
-    echo "  Usage: ${usage_pct}%"
-    echo "  Reset: $reset_info"
+    show_provider "Codex (OpenAI)" "$codex_data"
+    show_provider "Claude (Anthropic)" "$claude_data"
+    show_provider "Gemini (Google)" "$gemini_data"
+    show_provider "Antigravity (Google)" "$antigravity_data"
+    
+    # Overall status
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
     
-    # Check limit
-    if [ "${usage_pct%.*}" -ge "$ALERT_THRESHOLD" ]; then
-        echo "⚠️  WARNING: Approaching limit at ${usage_pct}%"
-        return 1
-    else
-        echo "✓ Usage healthy: ${usage_pct}%"
-    fi
+    # Check critical thresholds
+    local has_critical=false
+    for provider_data in "$codex_data" "$claude_data" "$gemini_data" "$antigravity_data"; do
+        if [ -n "$provider_data" ] && [ "$provider_data" != "null" ]; then
+            local usage=$(echo "$provider_data" | jq -r '.openaiDashboard.secondaryLimit.usedPercent // .usage.secondary.usedPercent // .usage.primary.usedPercent // 0')
+            if [ "${usage%.*}" -ge 95 ]; then
+                has_critical=true
+                break
+            fi
+        fi
+    done
     
-    # Project usage
-    local cycle=$(get_cycle)
-    local cycles_until_morning=$((44 - (cycle % 44)))
-    local estimated_increase=$(echo "scale=2; $cycles_until_morning * 0.5" | bc)
-    local projected=$(echo "scale=2; $usage_pct + $estimated_increase" | bc)
-    
-    echo ""
-    echo "📈 Projections:"
-    echo "  Current cycle: $cycle"
-    echo "  Cycles until 8 AM: $cycles_until_morning"
-    echo "  Estimated increase: ${estimated_increase}%"
-    echo "  Projected by 8 AM: ${projected}%"
-    
-    if [ "$(echo "$projected > 95" | bc)" -eq 1 ]; then
-        echo ""
-        echo "🚨 CRITICAL: May hit limit before morning!"
-        echo "   Recommendation: Reduce cycle frequency"
+    if $has_critical; then
+        echo "🚨 CRITICAL: One or more providers approaching limits!"
+        echo "   Recommendation: Reduce usage or switch models"
         return 2
-    elif [ "$(echo "$projected > $ALERT_THRESHOLD" | bc)" -eq 1 ]; then
-        echo ""
-        echo "⚠️  CAUTION: Approaching limits"
-        return 1
     else
-        echo ""
-        echo "✓ Sufficient capacity for tonight"
+        echo "✓ All providers healthy"
     fi
     
     return 0
@@ -98,17 +166,30 @@ log_status() {
     fi
     
     local timestamp=$(date -Iseconds)
-    local usage_pct=$(cat "$USAGE_CACHE" | jq -r '.[0].openaiDashboard.secondaryLimit.usedPercent // 0')
     local cycle=$(get_cycle)
+    
+    # Extract usage for all providers
+    local codex_usage=$(cat "$USAGE_CACHE" | jq -r '.[] | select(.openaiDashboard != null) | .openaiDashboard.secondaryLimit.usedPercent // 0')
+    local claude_usage=$(cat "$USAGE_CACHE" | jq -r '.[] | select(.provider == "claude") | .usage.secondary.usedPercent // 0')
+    local gemini_usage=$(cat "$USAGE_CACHE" | jq -r '.[] | select(.provider == "gemini") | .usage.primary.usedPercent // 0')
+    local antigravity_usage=$(cat "$USAGE_CACHE" | jq -r '.[] | select(.provider == "antigravity") | .usage.primary.usedPercent // 0')
     
     jq -n \
         --arg ts "$timestamp" \
-        --arg pct "$usage_pct" \
         --arg cycle "$cycle" \
+        --arg codex "$codex_usage" \
+        --arg claude "$claude_usage" \
+        --arg gemini "$gemini_usage" \
+        --arg antigravity "$antigravity_usage" \
         '{
             timestamp: $ts,
-            usage_percent: ($pct | tonumber),
-            cycle: ($cycle | tonumber)
+            cycle: ($cycle | tonumber),
+            providers: {
+                codex: ($codex | tonumber),
+                claude: ($claude | tonumber),
+                gemini: ($gemini | tonumber),
+                antigravity: ($antigravity | tonumber)
+            }
         }' >> "$USAGE_LOG"
 }
 
@@ -119,8 +200,16 @@ show_history() {
         return 1
     fi
     
-    echo "Recent usage history:"
-    cat "$USAGE_LOG" | jq -s 'sort_by(.timestamp) | .[-10:]' | jq -r '.[] | "\(.timestamp): \(.usage_percent)% (cycle \(.cycle))"'
+    echo "Recent usage history (last 10):"
+    echo ""
+    cat "$USAGE_LOG" | jq -s 'sort_by(.timestamp) | .[-10:]' | jq -r '.[] | 
+        "\(.timestamp):",
+        "  Cycle: \(.cycle)",
+        "  Codex: \(.providers.codex)%",
+        "  Claude: \(.providers.claude)%", 
+        "  Gemini: \(.providers.gemini)%",
+        "  Antigravity: \(.providers.antigravity)%",
+        ""'
 }
 
 # Main command interface
@@ -149,15 +238,16 @@ case "${1:-check}" in
         echo "Usage: $0 {update|check|log|history|auto|help}"
         echo ""
         echo "Commands:"
-        echo "  update   - Fetch latest usage from codexbar (slow)"
-        echo "  check    - Check cached usage + projections (fast)"
+        echo "  update   - Fetch latest usage from all providers (slow)"
+        echo "  check    - Check cached usage for all providers (fast)"
         echo "  log      - Log current status to tracking file"
         echo "  history  - Show recent usage history"
         echo "  auto     - Update, check, and log (for cron)"
         echo ""
-        echo "Workflow:"
-        echo "  1. Run 'update' once to populate cache"
-        echo "  2. Use 'check' frequently for fast monitoring"
-        echo "  3. Schedule 'auto' in cron for periodic updates"
+        echo "Providers tracked:"
+        echo "  • Codex (OpenAI)"
+        echo "  • Claude (Anthropic)"
+        echo "  • Gemini (Google)"
+        echo "  • Antigravity (Google)"
         ;;
 esac
