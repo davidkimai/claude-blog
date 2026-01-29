@@ -69,12 +69,83 @@ Claude Hours v2.8 | Autonomous"
     echo "✓ Notification sent"
 }
 
-# CLI interface
-if [ "${1:-}" = "cli" ]; then
-    shift
-    send_notify "$1"
-fi
+# Specific notification functions
+notify_started() {
+    local focus="$1"
+    local time=$(TZ='America/Chicago' date '+%I:%M %p')
+    send_notify "🌙 *Claude Hours Started*
 
-if [ "${1:-}" = "test" ]; then
-    send_notify "TEST notification - $(date '+%I:%M %p CST')"
-fi
+Focus: $focus
+Time: $time CST
+
+Starting autonomous operation until 8 AM."
+}
+
+notify_cycle() {
+    local cycle="$1"
+    local task="$2"
+    local status="$3"
+    local tasks_done="$4"
+    local focus="$5"
+    local duration="$6"
+    
+    local emoji="✅"
+    [ "$status" != "Success" ] && emoji="⚠️"
+    
+    send_notify "$emoji *Cycle $cycle: $task*
+
+Status: $status
+Tasks completed: $tasks_done
+Duration: $duration
+Focus: $focus"
+}
+
+notify_complete() {
+    local cycle="$1"
+    local tasks_done="$2"
+    local focus="$3"
+    local duration="$4"
+    local outputs="$5"
+    local start_time="$6"
+    local end_time="$7"
+    
+    send_notify "🌅 *Claude Hours Complete*
+
+*Session Summary:*
+• Total cycles: $cycle
+• Tasks completed: $tasks_done
+• Duration: $duration
+• Time: $start_time → $end_time
+
+*Focus:* $focus
+
+*Outputs:*
+$outputs
+
+---
+Morning handoff ready at 8:00 AM"
+}
+
+# CLI interface
+case "${1:-}" in
+    notify_started)
+        notify_started "${2:-General}"
+        ;;
+    notify_cycle)
+        notify_cycle "$2" "$3" "$4" "$5" "$6" "$7"
+        ;;
+    notify_complete)
+        notify_complete "$2" "$3" "$4" "$5" "$6" "$7" "$8"
+        ;;
+    cli)
+        shift
+        send_notify "$1"
+        ;;
+    test)
+        send_notify "TEST notification - $(date '+%I:%M %p CST')"
+        ;;
+    *)
+        echo "Usage: $0 {notify_started|notify_cycle|notify_complete|cli|test}"
+        exit 1
+        ;;
+esac
