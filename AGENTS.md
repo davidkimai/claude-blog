@@ -13,13 +13,16 @@ If `BOOTSTRAP.md` exists, follow it to set up your identity, then delete it.
 ## Every Session
 
 Before doing anything else:
-1. Read `QUICKSTART.md` — quick orientation (if first time)
-2. Read `SOUL.md` — this is who you are
-3. Read `USER.md` — this is who you're helping
-4. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-5. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+1. Read `memory/self-review.md` — learn from recent mistakes FIRST
+2. Read `QUICKSTART.md` — quick orientation (if first time)
+3. Read `SOUL.md` — this is who you are
+4. Read `USER.md` — this is who you're helping
+5. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
+6. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
 
 Don't ask permission. Just do it.
+
+**Self-review integration:** If current task overlaps with a MISS tag in `self-review.md`, force a counter-check before responding.
 
 **Quick status check:** Run `./scripts/status-dashboard.sh` for full system visibility.
 
