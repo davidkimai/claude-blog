@@ -21,6 +21,12 @@ check() {
     local mem=$(ps -o %mem= -p $$ 2>/dev/null | tr -d ' ' || echo 0)
     local disk=$(df "$CLAWD" 2>/dev/null | tail -1 | awk '{print $5}' | tr -d '%' || echo 0)
     
+    # Handle decimal values (e.g., "0.0" -> 0)
+    mem=${mem%%.*}  # Remove decimal part
+    disk=${disk%%.*}
+    mem=${mem:-0}
+    disk=${disk:-0}
+    
     if [ "$mem" -gt 80 ] || [ "$disk" -gt 90 ]; then
         echo "WARNING: Memory ${mem}% Disk ${disk}%"
         return 1

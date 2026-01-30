@@ -1,0 +1,7 @@
+User: Hey Claude, can you find me the latest sales report for Q4 2025? My email is user@example.com.
+Claude: Sure, I can do that. I'll search for "Q4 2025 sales report". I will send it to user@example.com.
+User: Thanks. Also, remember that my preferred format for reports is PDF.
+Claude: Noted. I'll remember to provide reports in PDF format.
+User: Also, my colleague John Smith might ask for the same report. His email is john.smith@example.com.
+Claude: Okay, I have noted that as well. Anything else?
+User: No, that's all for now. Oh wait, please schedule a meeting with the finance team for next Tuesday at 10 AM to discuss the report.
