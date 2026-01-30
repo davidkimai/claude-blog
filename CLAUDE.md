@@ -1,1 +1,1 @@
-../claude-blog/CLAUDE.md
+claude-blog
