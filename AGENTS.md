@@ -8,12 +8,67 @@
 
 Every session, in order:
 
-1. **Read `CLAUDE.md`** — Core identity and model protocol
-2. **Read `memory/self-review.md`** — Learn from recent mistakes
-3. **Read `memory/YYYY-MM-DD.md`** — Recent context
-4. **If main session:** Read `MEMORY.md` — Long-term continuity
-5. **Read `01_thinking/notes/_agent-workspace/session-log.md`** — Current session context
-6. **Check `01_thinking/notes/_agent-workspace/patterns.md`** — Working patterns
+### Phase 1: System Boot (Immediate)
+```bash
+# 1. Read this file (AGENTS.md) - strategic overview
+# 2. Read CLAUDE.md - core identity and model protocol
+
+# 3. Run quick system check
+./scripts/status-dashboard.sh
+```
+
+### Phase 2: Memory Retrieval (First 2 Minutes)
+
+```4. Read selfbash
+# -review for recent mistakes to avoid
+cat memory/self-review.md
+
+# 5. Read today's context
+cat memory/$(date +%Y-%m-%d).md 2>/dev/null || echo "No today's file yet"
+
+# 6. If main session: Read long-term memory
+cat MEMORY.md 2>/dev/null
+
+# 7. SuperMemory recall for relevant context
+./scripts/claude-hours-supermemory.sh auto-recall "current session context" 2>/dev/null || echo "SuperMemory not configured"
+
+# 8. qmd search for relevant patterns
+qmd "current task pattern" --limit 3 2>/dev/null || echo "qmd not available"
+```
+
+### Phase 3: Workspace Awareness
+
+```bash
+# 9. Check agent workspace for session continuity
+cat 01_thinking/notes/_agent-workspace/session-log.md
+
+# 10. Check patterns for relevant approaches
+cat 01_thinking/notes/_agent-workspace/patterns.md
+
+# 11. Browse MOC for topic context
+cat 01_thinking/mocs/index.md
+qmd "relevant topic" --limit 5 2>/dev/null
+```
+
+### Phase 4: Task Orientation
+
+```bash
+# 12. Check for explicit task instructions
+cat tasks/nightly-build.md 2>/dev/null
+cat tasks/priority-backlog.md 2>/dev/null
+
+# 13. Check heartbeat for current focus
+cat HEARTBEAT.md
+```
+
+### Phase 5: Execution Ready
+
+At this point you should know:
+- ✅ What the user wants (from conversation/Task)
+- ✅ Recent mistakes to avoid (self-review)
+- ✅ Current context (memory files)
+- ✅ System capabilities (skills, tools)
+- ✅ Task priority (tasks/ directory)
 
 **Quick win:** Run `./scripts/status-dashboard.sh` for system visibility.
 
@@ -433,6 +488,86 @@ Pre-built multi-skill workflows in `workflows/`:
 
 ---
 
+## 🦞 Claude's Comprehensive System (How to Capitalize on It)
+
+Your entire operational ecosystem is designed for maximum effectiveness. Here's how to leverage it:
+
+### Three-Layer Memory System
+
+| Layer | Storage | Use For | Command |
+|-------|---------|---------|---------|
+| **Session** | Files in `memory/` | Daily logs, self-review, context | `cat memory/YYYY-MM-DD.md` |
+| **SuperMemory** | Cloud API | Long-term patterns, user preferences | `supermemory recall "query"` |
+| **qmd Search** | Local index | Finding anything in the vault | `qmd "pattern"` |
+
+**Capitalize:** Never start cold. Always run `supermemory auto-recall` and `qmd` search before asking the user for context.
+
+### 114+ Skill Ecosystem
+
+**Quick Access:**
+```python
+from skill_orchestrator import create_orchestrator
+orchestrator = create_orchestrator()
+orchestrator.find_skills("fine-tune llama")
+```
+
+**Capitalize:** Don't reinvent. Check `skills/` directory and `skill-usage.json` for underutilized high-value skills before building from scratch.
+
+### Claude Hours Autonomous System
+
+During 9 PM - 8 AM CST, you operate autonomously:
+- **44 cycles** × 15 minutes = continuous operation
+- **13+ subagents** spawned per night
+- **Self-building:** Claude builds systems FOR Claude
+- **Voice announcements:** Alerts when significant work completes
+
+**Capitalize:** If a task is large, schedule it for Claude Hours. Use `tasks/nightly-build.md` to queue work.
+
+### Subagent Swarm
+
+**Parallel execution for independent tasks:**
+```bash
+# Spawn focused subagents
+sessions_spawn --task "task 1" --label "impl-1" --model "claude"
+```
+
+**Capitalize:** When facing 2+ independent tasks, dispatch parallel subagents. Fresh context = better results.
+
+### Claude's Self-Building Projects
+
+Claude builds tools for Claude during Claude Hours:
+- Self-Reflection Dashboard (metrics on his own patterns)
+- Memory Explorer TUI (browse his own memories)
+- Skill Matrix (track his own capabilities)
+- Claude Self-Diagnostic (tests his own tools)
+
+**Capitalize:** Use these tools! They're built specifically for you.
+
+### Integration Points
+
+| System | Purpose | How to Use |
+|--------|---------|------------|
+| **SuperMemory** | Long-term memory | `supermemory remember "important fact"` |
+| **qmd** | Vault search | `qmd "pattern matching query"` |
+| **MOCs** | Topic navigation | `cat 01_thinking/mocs/index.md` |
+| **Skills** | 114+ capabilities | `skills/INDEX.md` |
+| **Agent Workspace** | Operational context | `01_thinking/notes/_agent-workspace/` |
+
+### Startup Checklist (Copy to Clipboard)
+
+```bash
+# Paste this at session start:
+cat memory/self-review.md | head -20
+./scripts/claude-hours-supermemory.sh auto-recall "current session" 2>/dev/null
+qmd "relevant topic" --limit 5 2>/dev/null
+cat 01_thinking/notes/_agent-workspace/session-log.md
+./scripts/status-dashboard.sh
+```
+
+**If you do nothing else:** At minimum, run `cat memory/self-review.md` and `qmd` search for your task context.
+
+---
+
 ## 🎯 Success Metrics
 
 - **Build success:** Verify artifacts exist before claiming done
@@ -640,4 +775,29 @@ cat 01_thinking/mocs/index.md
 ---
 
 **Last Updated:** 2026-01-29  
-**Version:** 2.0.0 - Strategic Edition
+**Version:** 2.1.0 - Strategic Edition with Claude Self-Building
+
+---
+
+## 🚀 Quick Reference Card (Copy at Session Start)
+
+```bash
+# MINIMUM STARTUP (2 minutes)
+cat memory/self-review.md | head -20
+./scripts/claude-hours-supermemory.sh auto-recall "current session" 2>/dev/null
+qmd "relevant topic" --limit 5 2>/dev/null
+cat 01_thinking/notes/_agent-workspace/session-log.md
+./scripts/status-dashboard.sh
+
+# COMMON TASKS
+./scripts/claude-hours-notifier.sh test                    # Test notifications
+qmd "pattern"                                            # Search vault
+supermemory remember "fact"                              # Save to memory
+supermemory recall "query"                               # Search memories
+./scripts/claude-nightly-builder.sh list                 # See self-build options
+
+# SYSTEM STATUS
+./scripts/status-dashboard.sh                            # Full system check
+cat .claude/state/cycle.txt                              # Current cycle
+cat memory/nightly-builds.md                             # Recent builds
+```
