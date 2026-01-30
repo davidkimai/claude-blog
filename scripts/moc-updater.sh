@@ -152,8 +152,8 @@ get_note_title() {
 # Extract tags from note
 get_note_tags() {
     local note_file="$1"
-    grep -E 'tags:[[:space:]]*\[' "$note_file" 2>/dev/null | \
-        sed 's/.*tags:\[//;s/\].*//' | tr ',' '\n' | tr -d ' #' | tr '[:upper:]' '[:lower:]' || true
+    grep -E 'tags:' "$note_file" 2>/dev/null | \
+        sed -E 's/.*tags: *\[//;s/\].*//' | tr ',' '\n' | tr -d ' #' | tr '[:upper:]' '[:lower:]' || true
 }
 
 # Extract key topics from note content (simplified)
@@ -208,10 +208,12 @@ find_relevant_mocs() {
             [[ -f "$moc_file" ]] || continue
             local moc_name
             moc_name=$(basename "$moc_file" .md)
+            local moc_name_lc=$(echo "$moc_name" | tr '[:upper:]' '[:lower:]')
             
             # Check if any topic or tag matches MOC name
             for topic in $topics; do
-                if [[ "${moc_name,,}" == *"${topic,,}"* ]]; then
+                local topic_lc=$(echo "$topic" | tr '[:upper:]' '[:lower:]')
+                if [[ "$moc_name_lc" == *"$topic_lc"* ]]; then
                     results+=("$(basename "$moc_file")")
                     break
                 fi
@@ -219,8 +221,10 @@ find_relevant_mocs() {
         done 2>/dev/null
     fi
     
-    # Remove duplicates
-    printf '%s\n' "${results[@]}" | sort -u
+    # Remove duplicates and output
+    if [[ ${#results[@]} -gt 0 ]]; then
+        printf '%s\n' "${results[@]}" | sort -u
+    fi
 }
 
 # Check if note is already linked in MOC
@@ -272,19 +276,53 @@ add_to_moc() {
     # Create backup before modifying
     backup_moc "$moc_file"
     
+    # Use temp file for modifications
+    local temp_file="${moc_file}.tmp.$$"
+    
     # Find the "Recently Added" section or create one
     if grep -qE "^## Recently Added" "$moc_file"; then
-        # Insert after "Recently Added" header
-        sed -i "/^## Recently Added$/a\\${link_entry}" "$moc_file"
+        # Insert after "## Recently Added" header
+        local insert_marker="^## Recently Added$"
+        local after_line=$(grep -n "$insert_marker" "$moc_file" | cut -d: -f1 | head -1)
+        if [[ -n "$after_line" ]]; then
+            local head_lines=$((after_line + 1))
+            local tail_lines=$(($(wc -l < "$moc_file") - head_lines + 1))
+            head -n "$head_lines" "$moc_file" > "$temp_file"
+            echo "" >> "$temp_file"
+            echo "$link_entry" >> "$temp_file"
+            tail -n "+$tail_lines" "$moc_file" >> "$temp_file" 2>/dev/null || true
+            mv "$temp_file" "$moc_file"
+        fi
     elif grep -qE "^## Links" "$moc_file"; then
-        # Insert before "Links" section
-        sed -i "/^## Links$/i\\## Recently Added\n${link_entry}\n" "$moc_file"
+        # Insert before "## Links" section
+        local before_line=$(grep -n "^## Links$" "$moc_file" | cut -d: -f1 | head -1)
+        if [[ -n "$before_line" ]]; then
+            head -n $((before_line - 1)) "$moc_file" > "$temp_file"
+            echo "## Recently Added" >> "$temp_file"
+            echo "" >> "$temp_file"
+            echo "$link_entry" >> "$temp_file"
+            echo "" >> "$temp_file"
+            tail -n "+$before_line" "$moc_file" >> "$temp_file"
+            mv "$temp_file" "$moc_file"
+        fi
     elif grep -qE "^## Related" "$moc_file"; then
-        # Insert before "Related" section
-        sed -i "/^## Related$/i\\## Recently Added\n${link_entry}\n" "$moc_file"
+        # Insert before "## Related" section
+        local before_line=$(grep -n "^## Related$" "$moc_file" | cut -d: -f1 | head -1)
+        if [[ -n "$before_line" ]]; then
+            head -n $((before_line - 1)) "$moc_file" > "$temp_file"
+            echo "## Recently Added" >> "$temp_file"
+            echo "" >> "$temp_file"
+            echo "$link_entry" >> "$temp_file"
+            echo "" >> "$temp_file"
+            tail -n "+$before_line" "$moc_file" >> "$temp_file"
+            mv "$temp_file" "$moc_file"
+        fi
     else
         # Append to end with section header
-        echo -e "\n## Recently Added\n\n${link_entry}" >> "$moc_file"
+        echo "" >> "$moc_file"
+        echo "## Recently Added" >> "$moc_file"
+        echo "" >> "$moc_file"
+        echo "$link_entry" >> "$moc_file"
     fi
     
     log "INFO" "Added [[${note_basename}]] to ${moc_file}"
@@ -320,7 +358,7 @@ scan_notes_for_mocs() {
         
         # Find relevant MOCs
         local relevant_mocs=()
-        while IFS read -r moc; do
+        while read -r moc; do
             [[ -n "$moc" ]] && relevant_mocs+=("$moc")
         done < <(find_relevant_mocs "$note_file")
         
