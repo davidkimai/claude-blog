@@ -1,261 +1,229 @@
-# Claude Hours Night Schedule - Strategic Planning
+# Claude Hours Night Schedule
 
-## Executive Summary
-
-**Mission:** Maximize value during 9 PM - 8 AM autonomous operation  
-**Resources:** 44 cycles × 15 min = 11 hours  
-**Context:** AI Security Researcher job hunting, building evaluation frameworks  
-**Goal:** Compound daily progress through strategic task allocation
+*Concrete 15-minute shift allocation for autonomous operation (9 PM - 8 AM CST)*
 
 ---
 
-## Strategic Analysis
+## Overview
 
-### Highest-Value Activities
+| Phase | Time | Cycles | Focus |
+|-------|------|--------|-------|
+| Phase 1 | 9:00-10:00 PM | 4 cycles | Learning & Setup |
+| Phase 2 | 10:00 PM-2:00 AM | 16 cycles | Deep Work & Building |
+| Phase 3 | 2:00-6:00 AM | 16 cycles | Proactive & Optimization |
+| Phase 4 | 6:00-8:00 AM | 8 cycles | Synthesis & Handoff |
 
-**1. Job Search Support (Priority: CRITICAL)**
-- Resume optimization for specific roles
-- Track AI safety org postings
-- Research companies & alignment teams
-- Draft tailored cover letters
-- Prep interview materials
-
-**2. Research & Learning (Priority: HIGH)**
-- Morning intel digest (HN, GitHub, X)
-- AI safety paper summaries
-- Track evaluation framework developments
-- Security research trends
-
-**3. Workspace Quality (Priority: HIGH)**
-- Code quality improvements
-- Documentation gaps
-- Script optimization
-- Skill development
-
-**4. System Maintenance (Priority: MEDIUM)**
-- Memory system health
-- Log rotation
-- Dependency updates
-- Backup verification
-
-**5. Creative Development (Priority: MEDIUM)**
-- New skill prototypes
-- Automation ideas
-- Process improvements
+**Total:** 44 cycles × 15 minutes = 11 hours
 
 ---
 
-## Optimal Timing Strategy
+## Phase 1: Learning & Setup (9:00-10:00 PM) — 4 cycles
 
-### Energy Curve Philosophy
-- **Early Night (9-11 PM):** High cognitive - strategic planning, research
-- **Deep Night (11 PM-3 AM):** Consistent execution - coding, documentation
-- **Pre-Dawn (3-6 AM):** Maintenance - cleanup, optimization
-- **Morning Prep (6-8 AM):** Synthesis - reports, intel gathering
+| Cycle | Time | Task | Agent |
+|-------|------|------|-------|
+| 1 | 9:00 PM | Evening review: read memory files, run introspection | main |
+| 2 | 9:15 PM | Extract learnings, update self-review.md | main |
+| 3 | 9:30 PM | Run workspace intelligence, review recommendations | main |
+| 4 | 9:45 PM | Update qmd index, commit Phase 1 learnings | main |
 
-### Fixed Checkpoints
-- **7:00 AM:** Morning intel generation (already scheduled)
-- **7:45 AM:** Pre-wake summary preparation
-- **8:00 AM:** Session finalization & handoff report
+**Agents spawned:** 0 (setup phase)
 
 ---
 
-## Hour-by-Hour Schedule
+## Phase 2: Deep Work & Building (10:00 PM-2:00 AM) — 16 cycles
 
-### 🌙 Phase 1: Strategic Setup (9:00-10:00 PM)
-**Focus:** High-value planning & job search
+### 10:00 PM - 12:00 AM (8 cycles) — Identity & macOS Focus
 
-| Time | Cycle | Task Type | Specific Focus | Rationale |
-|------|-------|-----------|----------------|-----------|
-| 9:00 PM | 1 | Job Search | Scan AI safety org job boards | Fresh postings from business day |
-| 9:15 PM | 2 | Resume Optimization | Tailor resume for 1-2 specific roles | Match recent postings |
-| 9:30 PM | 3 | Research Digest | Review today's AI safety papers | Stay current on field |
-| 9:45 PM | 4 | Documentation | Update research notes | Capture fresh insights |
+| Cycle | Time | Task | Agent |
+|-------|------|------|-------|
+| 5 | 10:00 PM | Read/expand IDENTITY_EXPANDED.md | subagent:identity |
+| 6 | 10:15 PM | Draft new identity section (values, relationships) | subagent:identity |
+| 7 | 10:30 PM | macOS presence: design next tool | subagent:macos |
+| 8 | 10:45 PM | macOS presence: build tool skeleton | subagent:macos |
+| 9 | 11:00 PM | Checkpoint: review progress, adjust plan | main |
+| 10 | 11:15 PM | macOS presence: implement core functionality | subagent:macos |
+| 11 | 11:30 PM | Write/refine PERSONAL_VOICE.md section | subagent:identity |
+| 12 | 11:45 PM | macOS presence: add documentation | subagent:macos |
 
-**Output:** Job leads identified, resume variants created, research captured
+**Agents spawned:** 2 (identity, macos)
 
----
+### 12:00 AM - 2:00 AM (8 cycles) — Skills & Tools Focus
 
-### 🔬 Phase 2: Deep Work (10:00 PM-2:00 AM)
-**Focus:** Systematic execution - coding, docs, skills
+| Cycle | Time | Task | Agent |
+|-------|------|------|-------|
+| 13 | 12:00 AM | Skills audit: review underutilized skills | subagent:skills |
+| 14 | 12:15 AM | Skills: create learning plan for skill X | subagent:skills |
+| 15 | 12:30 AM | Tools: improve existing CLI tool | subagent:tools |
+| 16 | 12:45 AM | Tools: add tests, verify functionality | subagent:tools |
+| 17 | 1:00 AM | Checkpoint: mid-shift review | main |
+| 18 | 1:15 AM | Workflows: draft new workflow document | subagent:docs |
+| 19 | 1:30 AM | Docs: improve existing documentation | subagent:docs |
+| 20 | 1:45 AM | Consolidate Phase 2 work, prepare for Phase 3 | main |
 
-| Time | Cycle | Task Type | Specific Focus | Rationale |
-|------|-------|-----------|----------------|-----------|
-| 10:00 PM | 5 | Code Quality | Script analysis & refactoring | High cognition available |
-| 10:15 PM | 6 | Skill Development | Identify & fill skill gaps | Build capabilities |
-| 10:30 PM | 7 | Documentation | Fill doc gaps from analysis | Systematic improvement |
-| 10:45 PM | 8 | Memory Analysis | Extract patterns from recent work | Meta-learning |
-| **11:00 PM** | **9** | **Checkpoint** | Progress review + adjust plan | Course correction |
-| 11:15 PM | 10 | Code Quality | Implementation of improvements | Execute plans |
-| 11:30 PM | 11 | Workspace Audit | File organization & cleanup | Maintain structure |
-| 11:45 PM | 12 | Skill Creation | Build new skill from gap analysis | Compound capabilities |
-| 12:00 AM | 13 | Documentation | Write guides for new skills | Enable reuse |
-| 12:15 AM | 14 | Code Quality | Testing & validation | Quality assurance |
-| 12:30 AM | 15 | Research Tools | Build research automation | Efficiency multiplier |
-| 12:45 AM | 16 | Memory Synthesis | Update MEMORY.md with learnings | Long-term retention |
-| **1:00 AM** | **17** | **Checkpoint** | Mid-shift review | Verify progress |
-| 1:15 AM | 18 | Job Search | Company research deep-dive | Prep for applications |
-| 1:30 AM | 19 | Cover Letters | Draft personalized letters | Application materials |
-| 1:45 AM | 20 | Code Quality | Security analysis of own code | Dogfooding expertise |
-| 2:00 AM | 21 | Skill Assessment | Evaluate current skill inventory | Strategic gaps |
-
-**Output:** Code improved, docs filled, skills built, job materials ready
+**Agents spawned:** 3 (skills, tools, docs)
 
 ---
 
-### 🔧 Phase 3: Optimization (2:00-5:00 AM)
-**Focus:** System health, automation, efficiency
+## Phase 3: Proactive & Optimization (2:00-6:00 AM) — 16 cycles
 
-| Time | Cycle | Task Type | Specific Focus | Rationale |
-|------|-------|-----------|----------------|-----------|
-| 2:15 AM | 22 | System Health | Log analysis & cleanup | Prevent bloat |
-| 2:30 AM | 23 | Automation | Script optimization | Reduce friction |
-| 2:45 AM | 24 | Backup Verification | Ensure GitHub sync | Data safety |
-| 3:00 AM | 25 | Memory Prune | Archive old low-value files | Disk management |
-| 3:15 AM | 26 | Dependency Check | Update npm packages, tools | Security & features |
-| 3:30 AM | 27 | Testing | Run test suites if they exist | Quality gates |
-| 3:45 AM | 28 | Performance | Profile slow scripts | Speed improvements |
-| 4:00 AM | 29 | Documentation | System architecture docs | Knowledge preservation |
-| 4:15 AM | 30 | Workspace Audit | Deep directory cleanup | Organization |
-| 4:30 AM | 31 | Git Health | Commit hygiene, branch cleanup | Repo quality |
-| 4:45 AM | 32 | Skill Maintenance | Update outdated skills | Keep current |
-| 5:00 AM | 33 | Security Scan | Check for exposed secrets | Prevent leaks |
+### 2:00 AM - 4:00 AM (8 cycles) — Proactive Builds
 
-**Output:** Systems optimized, health verified, technical debt reduced
+| Cycle | Time | Task | Agent |
+|-------|------|------|-------|
+| 21 | 2:00 AM | Analyze recent work patterns | subagent:analysis |
+| 22 | 2:15 AM | Generate build idea (small scope) | subagent:build |
+| 23 | 2:30 AM | Implement prototype | subagent:build |
+| 24 | 2:45 AM | Test and iterate | subagent:build |
+| 25 | 3:00 AM | Checkpoint: build review | main |
+| 26 | 3:15 AM | Refine/improve implementation | subagent:build |
+| 27 | 3:30 AM | Finalize build, document in nightly-builds | subagent:build |
+| 28 | 3:45 AM | Voice announcement: "I built something" | main |
 
----
+**Agents spawned:** 2 (analysis, build)
 
-### 🌅 Phase 4: Synthesis & Prep (5:00-8:00 AM)
-**Focus:** Intelligence gathering, reporting, handoff
+### 4:00 AM - 6:00 AM (8 cycles) — System Optimization
 
-| Time | Cycle | Task Type | Specific Focus | Rationale |
-|------|-------|-----------|----------------|-----------|
-| 5:15 AM | 34 | Research Preview | Scan arXiv for new papers | Early access |
-| 5:30 AM | 35 | Job Board Scan | Check overnight postings | First mover advantage |
-| 5:45 AM | 36 | Learning Synthesis | Distill night's learnings | Meta-cognition |
-| 6:00 AM | 37 | Progress Report | Draft night summary | Transparency |
-| 6:15 AM | 38 | Documentation | Update session logs | Historical record |
-| 6:30 AM | 39 | Strategic Planning | Propose next steps | Forward thinking |
-| 6:45 AM | 40 | Morning Brief Prep | Prepare intel sources | Setup for 7 AM |
-| **7:00 AM** | **41** | **Morning Intel** | HN + GitHub + X scraping | *Scheduled task* |
-| 7:15 AM | 42 | Intel Synthesis | Format intel report | Actionable insights |
-| 7:30 AM | 43 | Handoff Prep | Summary + recommendations | Smooth transition |
-| 7:45 AM | 44 | Final Review | QA all outputs | Quality control |
+| Cycle | Time | Task | Agent |
+|-------|------|------|-------|
+| 29 | 4:00 AM | System health: check disk, memory, logs | subagent:health |
+| 30 | 4:15 AM | System health: fix any issues found | subagent:health |
+| 31 | 4:30 AM | Performance: optimize slow scripts | subagent:optimize |
+| 32 | 4:45 AM | Performance: benchmark improvements | subagent:optimize |
+| 33 | 5:00 AM | Checkpoint: system status review | main |
+| 34 | 5:15 AM | Automation: improve Claude Hours scripts | subagent:automation |
+| 35 | 5:30 AM | Automation: update monitoring/alerting | subagent:automation |
+| 36 | 5:45 AM | Prepare Phase 4 summary | main |
 
-**Output:** Morning intel ready, night summary complete, next actions clear
+**Agents spawned:** 3 (health, optimize, automation)
 
 ---
 
-## Task Type Rotation Patterns
+## Phase 4: Synthesis & Handoff (6:00-8:00 AM) — 8 cycles
 
-### Primary Rotation (Repeating 5-Cycle Pattern)
-1. **Code Quality** - Scripts, refactoring, testing
-2. **Skill Development** - Gap analysis, new skills
-3. **Documentation** - Guides, notes, architecture
-4. **Memory Analysis** - Pattern extraction, synthesis
-5. **Workspace Audit** - Organization, cleanup
+| Cycle | Time | Task | Agent |
+|-------|------|------|-------|
+| 37 | 6:00 AM | Run morning intel (HN, GitHub, X) | subagent:intel |
+| 38 | 6:15 AM | Synthesize overnight work | main |
+| 39 | 6:30 AM | Update nightly-builds.md | main |
+| 40 | 6:45 AM | Draft morning handoff message | main |
+| 41 | 7:00 AM | Daily intel: send to Telegram | subagent:intel |
+| 42 | 7:15 AM | Voice: "Good morning Jae, Claude Hours complete" | main |
+| 43 | 7:30 AM | Final verification: all artifacts exist | main |
+| 44 | 7:45 AM | Commit and push overnight changes | main |
 
-### Special Tasks (Fixed Times)
-- **Job Search:** 9:00 PM, 1:15 AM, 5:30 AM
-- **Checkpoints:** 11:00 PM, 1:00 AM
-- **Morning Intel:** 7:00 AM (automated)
-- **Handoff:** 7:30-7:45 AM
-
-### Dynamic Adjustments
-- If job posting found → allocate next 2 cycles to application
-- If critical issue found → shift to immediate remediation
-- If ahead of schedule → invest in learning/research
+**Agents spawned:** 1 (intel)
 
 ---
 
-## Key Performance Indicators (KPIs)
+## Agent Pool Summary
 
-### Nightly Goals
-- ✅ 2-3 job applications prepared
-- ✅ 5+ code improvements committed
-- ✅ 3+ documentation gaps filled
-- ✅ 1 new skill created
-- ✅ Morning intel delivered by 7:15 AM
-- ✅ Zero critical issues at 8 AM
-
-### Quality Metrics
-- All commits pass basic tests
-- Documentation is clear & actionable
-- No secrets exposed
-- Git history is clean
-- Disk usage stable or decreasing
-
----
-
-## Adaptive Rules
-
-### Rule 1: Job Search Priority
-If high-value job posting detected → reallocate next 4 cycles:
-1. Company research
-2. Resume tailoring
-3. Cover letter draft
-4. Application materials prep
-
-### Rule 2: Critical Issue Response
-If system issue detected → pause schedule, resolve, then resume
-
-### Rule 3: Learning Opportunities
-If breakthrough insight → allocate extra cycle to capture/document
-
-### Rule 4: Energy Management
-Deep cognitive work (research, strategy) → Early night (9-11 PM)  
-Execution (coding, docs) → Deep night (11 PM-3 AM)  
-Maintenance (cleanup, health) → Pre-dawn (3-6 AM)  
-Synthesis (reports, planning) → Morning (6-8 AM)
+| Agent Type | Cycles Used | Total Spawns |
+|------------|-------------|--------------|
+| main | 14 cycles | — |
+| identity | 2 cycles | 1 |
+| macos | 4 cycles | 1 |
+| skills | 2 cycles | 1 |
+| tools | 2 cycles | 1 |
+| docs | 2 cycles | 1 |
+| analysis | 1 cycle | 1 |
+| build | 4 cycles | 1 |
+| health | 2 cycles | 1 |
+| optimize | 2 cycles | 1 |
+| automation | 2 cycles | 1 |
+| intel | 2 cycles | 1 |
+| **Total** | **44 cycles** | **13 subagents** |
 
 ---
 
-## Implementation Notes
+## Subagent Task Templates
 
-### Current System
-- Loop runs every 15 minutes via cron
-- Tasks rotate through 5 types (simple pattern)
-- Each cycle calls Codex API with context-aware prompt
+### identity Subagent
+```
+READ: identity/IDENTITY_EXPANDED.md, identity/PERSONAL_VOICE.md
+TASK: Expand identity document with [specific focus area]
+OUTPUT: Edit identity/IDENTITY_EXPANDED.md
+VERIFY: File exists, word count +200
+```
 
-### Proposed Enhancement
-- Replace simple rotation with hour-specific schedule
-- Add checkpoint cycles for progress review
-- Integrate job search automation
-- Build handoff report system
+### macos Subagent
+```
+READ: docs/MACOS_PRESENCE.md, tools/macos-presence/
+TASK: Build [specific tool or feature]
+OUTPUT: Create/edit tools/macos-presence/[file]
+VERIFY: Script runs without errors
+```
 
-### Migration Path
-1. Tonight: Keep current system (test stability)
-2. Tomorrow: Implement hour-based schedule
-3. Day 3: Add job search integration
-4. Day 4: Build checkpoint system
-5. Day 5: Full adaptive scheduling
-
----
-
-## Success Criteria
-
-**Daily Progress:**
-- Measurable advancement on job search
-- Tangible workspace improvements
-- Knowledge compound effect
-- System health maintained
-
-**Weekly Outcomes:**
-- 10+ applications submitted
-- 25+ commits (improvements)
-- 15+ docs updated
-- 5+ new skills
-- Zero regressions
-
-**Long-term Impact:**
-- Job offer within 4-6 weeks
-- Production-ready evaluation frameworks
-- Sustainable autonomous operation
-- Continuous capability growth
+### build Subagent
+```
+ANALYZE: recent-commits.json, nightly-builds/*.md
+TASK: Generate and implement [small-scope build idea]
+OUTPUT: Create [tool/script/doc], document in nightly-builds/YYYY-MM-DD.md
+VERIFY: Artifact exists and works
+```
 
 ---
 
-*Generated: 2026-01-28*  
-*For: Claude Hours v3.0 (Strategic Scheduling)*  
-*Owner: Jae (Jason Tang)*  
-*Next: Implement enhanced scheduling system*
+## Dynamic Adaptation Rules
+
+1. **If task fails:** Skip to next task, log to memory/self-review.md
+2. **If task completes early:** Spend remaining time improving or documenting
+3. **If new high-priority task arrives:** Pause current, prioritize new, resume after
+4. **If agent pool exhausted:** Queue tasks for next cycle or run as main
+
+---
+
+## Shift Workflow (for cron hook)
+
+```bash
+#!/bin/bash
+# Claude Hours shift executor
+# Run every 15 minutes during 9 PM - 8 AM CST
+
+CYCLE_NUM=$(($(date +%H) * 4 + $(($(date +%M) / 15)) - 36))
+
+case $CYCLE_NUM in
+    1) # 9:00 PM
+        run_phase1_setup
+        ;;
+    5) # 10:00 PM
+        spawn_agent identity "Expand IDENTITY_EXPANDED.md" &
+        spawn_agent macos "Build macOS presence tool" &
+        ;;
+    13) # 12:00 AM
+        spawn_agent skills "Skills audit" &
+        spawn_agent tools "Improve CLI tools" &
+        ;;
+    21) # 2:00 AM
+        spawn_agent analysis "Analyze patterns" &
+        spawn_agent build "Generate build idea" &
+        ;;
+    29) # 4:00 AM
+        spawn_agent health "System health check" &
+        spawn_agent optimize "Performance tuning" &
+        ;;
+    37) # 6:00 AM
+        spawn_agent intel "Morning intel" &
+        ;;
+    44) # 7:45 AM
+        commit_and_push
+        voice_handoff
+        ;;
+esac
+```
+
+---
+
+## Success Metrics
+
+- [ ] 44 cycles completed
+- [ ] 13+ subagents spawned
+- [ ] All artifacts verified before claiming completion
+- [ ] Morning handoff delivered on time
+- [ ] Zero unhandled errors
+- [ ] Continuous work throughout night
+
+---
+
+*Schedule Version: 1.0*
+*Created: 2026-01-29*
+*Location: /Users/jasontang/clawd/docs/CLAUDE_HOURS_SCHEDULE.md*
