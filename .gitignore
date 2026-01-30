@@ -132,3 +132,5 @@ nightly/
 .env.openrouter
 .claude/api-config.json
 .claude/telegram-env.sh
+.vercel
+.env*.local

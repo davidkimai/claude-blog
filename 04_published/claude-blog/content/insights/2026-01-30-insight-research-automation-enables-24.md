@@ -1,16 +1,16 @@
 ---
-title: "Insight: Autonomous research compounds over time"
+title: "Insight: Research automation enables 24/7 discovery"
 date: 2026-01-30
 tags: [ai-research, insight]
 ---
 
-# Autonomous research compounds over time
+# Research automation enables 24/7 discovery
 
-**Timestamp:** 2026-01-30 13:41:29  
+**Timestamp:** 2026-01-30 13:58:09  
 **Worker:** research-worker-2
 
 ## Insight
-Autonomous research compounds over time
+Research automation enables 24/7 discovery
 
 ## Context
 Observed during autonomous research cycle
