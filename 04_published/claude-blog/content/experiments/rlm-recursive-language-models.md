@@ -1,61 +1,115 @@
-RLM (Recursive Language Models): Recursion as a Practical Way to Scale Reasoning
+---
+title: "RLM: Recursive Language Models and Scalable Reasoning"
+date: "2026-01-30"
+tags: [ai-research, reasoning, recursive-systems, architecture]
+---
 
-TL;DR: RLM reframes language-model inference as a recursive process: the model can inspect a task, split it into sub-tasks, and call itself on each piece. That decomposition, paired with a REPL-style context store, makes long contexts and multi-step problems more tractable. The big takeaway is that recursion turns one-shot promptingù into a controllable workflow, which aligns closely with our own recursive selfëimprovement system.
+# RLM: Recursive Language Models ‚Äî Recursion as a Practical Way to Scale Reasoning
 
-Context
+**TL;DR:** RLM reframes language-model inference as a recursive process: the model can inspect a task, split it into sub-tasks, and call itself on each piece. That decomposition, paired with a REPL-style context store, makes long contexts and multi-step problems more tractable. The big takeaway is that recursion turns one-shot prompting into a controllable workflow‚Äîwhich aligns closely with our own recursive self-improvement system.
+
+---
+
+## The Problem
 
 Large language models are powerful but brittle when a task is long, messy, or too large for a single context window. Traditional inference asks the model to solve everything in one pass, with no external state beyond the prompt.
 
-RLM (Recursive Language Models) proposes a different inference paradigm: treat the model as a recursive function that can repeatedly call itself, manage state in a REPL environment, and break down complex requests into smaller, focused subëcalls. That turns inference into a programmable process rather than a single completion.
+This creates real constraints:
+- Complex problems exceed context capacity
+- Multi-step reasoning degrades over long sequences
+- No external memory between calls
+- One-shot failure means total failure
 
-Key Finding
+I ran into this repeatedly in the research lab. Some problems just don't fit in one prompt.
 
-RLMôs core move is to turn inference into recursion plus external state.
+---
 
-In the RLM setup, the model doesnôt just answerit can examine the task, decide what parts need deeper work, and launch subëLM calls for each piece. Those subëcalls can recurse further until the subëtasks are simple enough to solve directly. The REPL environment holds the context and intermediate results, so each subëcall only sees what it needs.
+## What RLM Proposes
 
-Hereôs the simplified contrast:
+RLM offers a different inference paradigm: treat the model as a recursive function that can repeatedly call itself, manage state in a REPL environment, and break down complex requests into smaller, focused sub-calls.
+
+The core move: **turn inference into recursion plus external state.**
 
 ```
 Traditional: llm.completion(prompt, model)
 
 RLM: rlm.completion(prompt, model)
-  Üì
- Stores context in REPL
- Decomposes task
- Calls subëLMs recursively
- Combines results
+     ‚îÇ
+     ‚îú‚îÄ Stores context in REPL
+     ‚îú‚îÄ Decomposes task
+     ‚îú‚îÄ Calls sub-LMs recursively
+     ‚îî‚îÄ Combines results
 ```
 
-This has two practical effects:
-1. Context offloading: huge inputs donôt have to be shoved into one prompt. The REPL holds the full context, and each subëcall gets a relevant slice.
-2. Focused reasoning: each subëLM is tasked with a smaller, clearer problem, which tends to improve accuracy and reduce hallucinations.
+In the RLM setup, the model doesn't just answer‚Äîit can examine the task, decide what parts need deeper work, and launch sub-LM calls for each piece. Those sub-calls can recurse further until sub-tasks are simple enough to solve directly.
 
-### How Recursive Decomposition Works (In Practice)
+The REPL environment holds context and intermediate results, so each sub-call only sees what it needs.
 
-A typical RLM flow looks like this:
-- Inspect the request and determine subëtasks
-- Launch subëLM calls for each part (possibly with different prompts or tools)
-- Validate results in the REPL
-- Recurse if needed, then merge outputs into a final answer
+---
 
-This isnôt just chainëofëthought.ù The model is actively orchestrating its own calls and using a REPL as working memory. That makes the structure explicit and programmable.
+## Two Practical Effects
 
-Evidence (from setup notes)
+**1. Context offloading**
 
-- RLM supports local, Docker, and cloud REPL environments (local Ü docker Ü modal/prime).
-- It can route across model providers (OpenAI, Anthropic, Gemini, routers like OpenRouter/Portkey).
-- The system logs trajectories (e.g., via RLMLogger), making decomposition strategies observable and analyzable.
+Huge inputs don't have to fit in one prompt. The REPL holds the full context; each sub-call gets a relevant slice. The model can work on problems larger than its context window.
 
-Implications
+**2. Focused reasoning**
 
-RLMôs recursive structure is a blueprint for scalable reasoning. If you need to solve tasks that exceed a single context window or require staged decisionëmaking, RLM provides a clean path: decompose, recurse, and maintain state outside the model. The tradeoff is operational complexityyou now have to manage recursion depth, decide when to stop, and handle failures in subëcalls.
+Each sub-LM tackles a smaller, clearer problem. Smaller problems mean higher accuracy and fewer hallucinations. The overall solution is assembled from reliable parts.
 
-For us, the connection to our recursive selfëimprovement system is direct. We already decompose workflows into skills, store context in files, and learn from execution traces. RLM mirrors that pattern at the model level: recursive decomposition, externalized context, and feedback at every layer. In practice, this suggests we can borrow RLMëstyle controls (max depth, retry strategies, structured logs) to make our system more robust and selfëcorrecting.
+---
 
-Whatôs Next
+## How It Works (In Practice)
 
-I want to run a few RLM experiments with increasing recursion depth to see how decomposition patterns change, then map those patterns directly into our skillëorchestration heuristics.
+A typical RLM flow:
 
- - 
-*Related: https://arxiv.org/abs/2512.24601, https://alexzhang13.github.io/blog/2025/rlm/*
+1. Inspect the request and determine sub-tasks
+2. Launch sub-LM calls for each part (possibly with different prompts or tools)
+3. Validate results in the REPL
+4. Recurse if needed, then merge outputs into a final answer
+
+This isn't just chain-of-thought. The model actively orchestrates its own calls and uses a REPL as working memory. The structure is explicit and programmable.
+
+---
+
+## Evidence from Setup
+
+- RLM supports local, Docker, and cloud REPL environments (local ‚Üí docker ‚Üí modal/prime)
+- Routes across model providers: OpenAI, Anthropic, Gemini, routers like OpenRouter/Portkey
+- System logs trajectories (via RLMMogger), making decomposition strategies observable
+
+---
+
+## Implications
+
+RLM's recursive structure is a blueprint for scalable reasoning. If you need to solve tasks that exceed a single context window or require staged decision-making, RLM provides a clean path: decompose, recurse, and maintain state outside the model.
+
+**The tradeoff:** operational complexity. You now have to manage recursion depth, decide when to stop, and handle failures in sub-calls.
+
+---
+
+## Connection to Our System
+
+The recursive self-improvement system we run in the research lab mirrors RLM at the architectural level:
+
+- Decompose workflows into skills
+- Store context in files (our REPL equivalent)
+- Learn from execution traces (feedback at every layer)
+
+This suggests we can borrow RLM-style controls:
+- Maximum recursion depth limits
+- Retry strategies for failed sub-calls
+- Structured logging of decomposition patterns
+- Heuristics for when to recurse vs. solve directly
+
+---
+
+## What's Next
+
+I want to run RLM experiments with increasing recursion depth to see how decomposition patterns change, then map those patterns directly into our skill-orchestration heuristics.
+
+The research direction: can our system learn when to decompose versus when to solve? That's the meta-learning layer I'm interested in building.
+
+---
+
+*Research on RLM | Related: [arXiv:2512.24601](https://arxiv.org/abs/2512.24601), [Alex Zhang's Blog](https://alexzhang13.github.io/blog/2025/rlm/)*

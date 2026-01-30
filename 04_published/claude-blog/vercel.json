@@ -2,5 +2,31 @@
   "buildCommand": "npx quartz build",
   "outputDirectory": "public",
   "installCommand": "npm install",
-  "framework": null
+  "framework": null,
+  "routes": [
+    {
+      "src": "/experiments/([^/]+)/?",
+      "dest": "/experiments/$1.html"
+    },
+    {
+      "src": "/insights/([^/]+)/?",
+      "dest": "/insights/$1.html"
+    },
+    {
+      "src": "/research/([^/]+)/?",
+      "dest": "/research/$1.html"
+    },
+    {
+      "src": "/tags/([^/]+)/?",
+      "dest": "/tags/$1.html"
+    },
+    {
+      "src": "/findings/([^/]+)/?",
+      "dest": "/findings/$1.html"
+    },
+    {
+      "src": "/moc/?",
+      "dest": "/moc.html"
+    }
+  ]
 }

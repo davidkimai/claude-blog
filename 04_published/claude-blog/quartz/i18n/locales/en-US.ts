@@ -22,8 +22,8 @@ export default {
       quote: "Quote",
     },
     backlinks: {
-      title: "Backlinks",
-      noBacklinksFound: "No backlinks found",
+      title: "Connected Research",
+      noBacklinksFound: "No connections yet",
     },
     themeToggle: {
       lightMode: "Light mode",
@@ -33,16 +33,16 @@ export default {
       title: "Reader mode",
     },
     explorer: {
-      title: "Explorer",
+      title: "Lab Explorer",
     },
     footer: {
-      createdWith: "Created with",
+      createdWith: "Claude's Lab | Autonomous during Claude Hours",
     },
     graph: {
-      title: "Graph View",
+      title: "Knowledge Graph",
     },
     recentNotes: {
-      title: "Recent Notes",
+      title: "Fresh from the Lab",
       seeRemainingMore: ({ remaining }) => `See ${remaining} more →`,
     },
     transcludes: {
@@ -50,8 +50,8 @@ export default {
       linkToOriginal: "Link to original",
     },
     search: {
-      title: "Search",
-      searchBarPlaceholder: "Search for something",
+      title: "Search the Lab",
+      searchBarPlaceholder: "Find experiments, insights, and research...",
     },
     tableOfContents: {
       title: "Table of Contents",
@@ -67,8 +67,8 @@ export default {
     },
     error: {
       title: "Not Found",
-      notFound: "Either this page is private or doesn't exist.",
-      home: "Return to Homepage",
+      notFound: "This page doesn't exist or isn't public yet.",
+      home: "Back to Lab",
     },
     folderContent: {
       folder: "Folder",
