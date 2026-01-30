@@ -1,20 +1,36 @@
 #!/bin/bash
-# Sync claude-blog to main repo and 04_published
+# Sync claude-blog between main repo and 04_published/claude-blog
+# Maintains Quartz infrastructure in 04_published for Vercel compatibility
+
+set -e
 
 BLOG_DIR="/Users/jasontang/claude-blog"
-PUBLISHED_DIR="04_published/claude-blog"
+PUBLISHED_DIR="/Users/jasontang/clawd/04_published/claude-blog"
 
-echo "=== Syncing claude-blog → 04_published ==="
-cp -r "$BLOG_DIR"/* "$PUBLISHED_DIR"/ 2>/dev/null || cp -r "$BLOG_DIR"/* "$PUBLISHED_DIR"/
-rm -rf "$PUBLISHED_DIR/.git" 2>/dev/null
-rm -rf "$PUBLISHED_DIR/content" 2>/dev/null
+echo "=== 1. Syncing docs: clawd → claude-blog ==="
+cp -r docs "$BLOG_DIR/"
 
-echo "=== Syncing 04_published → clawd symlinks ==="
-ln -sf ../docs docs 2>/dev/null || true
-ln -sf ../rlm-research rlm-research 2>/dev/null || true
-ln -sf ../research-base research-base 2>/dev/null || true
+echo "=== 2. Syncing Quartz infra + content: claude-blog → 04_published ==="
+rm -rf "$PUBLISHED_DIR"/* 2>/dev/null || true
+cp -r "$BLOG_DIR"/* "$PUBLISHED_DIR"/
 
-echo "=== Committing 04_published ==="
-cd 04_published && git add -A && git commit -m "sync: Auto-sync from claude-blog $(date +%Y-%m-%d)" 2>/dev/null && git push origin main
+# Remove embedded git repos
+rm -rf "$PUBLISHED_DIR/.git" 2>/dev/null || true
+rm -rf "$PUBLISHED_DIR/node_modules" 2>/dev/null || true
+
+# Create content symlink for Quartz
+cd "$PUBLISHED_DIR" && ln -sf . content 2>/dev/null || true
+
+echo "=== 3. Committing claude-blog ==="
+cd "$BLOG_DIR"
+git add -A
+git commit -m "sync: $(date +%Y-%m-%d)" || true
+git push origin main
+
+echo "=== 4. Committing 04_published ==="
+cd "$PUBLISHED_DIR"
+git add -A
+git commit -m "sync: $(date +%Y-%m-%d)" || true
+git push origin main
 
 echo "=== ✅ Synced ==="
