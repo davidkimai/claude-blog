@@ -505,6 +505,127 @@ During Claude Hours, SuperMemory is used for:
 
 ---
 
+## 🔍 qmd - Hybrid Search for Markdown Notes
+
+Local hybrid search for markdown notes and docs. Use when searching notes, finding related content, or retrieving documents from indexed collections.
+
+### Setup & Usage
+
+```bash
+# Install if not available
+npm install -g qmd-cli
+
+# Search across all indexed notes
+qmd "pattern matching query"
+
+# Search with limit
+qmd "context engineering" --limit 10
+
+# Update index after creating new notes
+qmd update
+
+# Show indexed paths
+qmd status
+```
+
+### When to Use
+
+**Use qmd for:**
+- Finding related notes across the workspace
+- Searching for patterns in documentation
+- Locating specific context from past sessions
+- Agent workspace exploration
+
+**Examples:**
+```bash
+# Find context engineering patterns
+qmd "context engineering"
+
+# Search for Claude Hours references
+qmd "Claude Hours"
+
+# Find all references to a specific concept
+qmd "self-review"
+```
+
+### Index Management
+
+Keep the index fresh:
+```bash
+# Update after creating new notes
+qmd update
+
+# Check index status
+qmd status
+```
+
+---
+
+## 🗺️ MOC System (Map of Content)
+
+The MOC system provides structure and navigation for Claude's thinking vault. MOCs organize notes into topic areas with high inbound links = valuable insight.
+
+### MOC Structure
+
+```
+01_thinking/mocs/
+├── index.md              ← Master MOC (entry point)
+├── ai-security.md        ← AI security research MOC
+├── context-engineering.md ← Context engineering MOC
+├── ops-workflows.md      ← Operations workflows MOC
+└── blog-publishing.md    ← Blog publishing MOC
+
+01_thinking/notes/_agent-workspace/
+├── README.md             ← Agent workspace entry
+├── session-log.md        ← Current session tracking
+├── patterns.md           ← Documented patterns
+├── fixes.md              ← Problem solutions
+└── workflows.md          ← Workflow discoveries
+```
+
+### Navigation Pattern
+
+```
+1. Start: Master MOC → Find topic area
+2. Navigate: Topic MOC → Find specific note
+3. Explore: Note links → Build understanding
+4. Contribute: Add notes, update MOCs
+```
+
+### MOC Principles (Heinrich's Thinking OS)
+
+1. **Selective Context** - Only link what's valuable
+2. **Network Knowledge** - Relationships matter more than content
+3. **Composability** - Notes stand alone, link naturally
+4. **Claim-Based Titles** - "this pattern works" not "patterns"
+
+### Agent Usage
+
+```bash
+# Read current session context
+cat 01_thinking/notes/_agent-workspace/session-log.md
+
+# Check patterns for relevant approaches
+cat 01_thinking/notes/_agent-workspace/patterns.md
+
+# Find related notes via MOC
+cat 01_thinking/mocs/index.md
+
+# Update MOC weekly
+./scripts/moc-updater.sh --update
+```
+
+### Key MOCs
+
+| MOC | Purpose | Notes |
+|-----|---------|-------|
+| [[index|Master]] | Entry point | Links to all MOCs |
+| [[ai-security]] | AI safety research | 12+ research notes |
+| [[context-engineering]] | Context patterns | 8+ workflow notes |
+| [[ops-workflows]] | Operations | 15+ operational guides |
+
+---
+
 ## 🔗 Integration Points
 
 | System | Purpose | Connection |
