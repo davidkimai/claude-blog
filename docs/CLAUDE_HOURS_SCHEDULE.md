@@ -66,35 +66,53 @@
 
 ## Phase 3: Proactive & Optimization (2:00-6:00 AM) — 16 cycles
 
-### 2:00 AM - 4:00 AM (8 cycles) — Proactive Builds
+### 2:00 AM - 4:00 AM (8 cycles) — Claude Builds FOR Claude
 
 | Cycle | Time | Task | Agent |
 |-------|------|------|-------|
-| 21 | 2:00 AM | Analyze recent work patterns | subagent:analysis |
-| 22 | 2:15 AM | Generate build idea (small scope) | subagent:build |
-| 23 | 2:30 AM | Implement prototype | subagent:build |
-| 24 | 2:45 AM | Test and iterate | subagent:build |
-| 25 | 3:00 AM | Checkpoint: build review | main |
-| 26 | 3:15 AM | Refine/improve implementation | subagent:build |
-| 27 | 3:30 AM | Finalize build, document in nightly-builds | subagent:build |
-| 28 | 3:45 AM | Voice announcement: "I built something" | main |
+| 21 | 2:00 AM | Analyze Claude's current state, MISS patterns | subagent:analysis |
+| 22 | 2:15 AM | Run `claude-nightly-builder.sh pick` → pick build | main |
+| 23 | 2:30 AM | Run `claude-nightly-builder.sh run` → build it | subagent:build |
+| 24 | 2:45 AM | Test the build | subagent:build |
+| 25 | 3:00 AM | Checkpoint: review self-built artifact | main |
+| 26 | 3:15 AM | If `always_on=true`, install to scripts/ | subagent:build |
+| 27 | 3:30 AM | Document in nightly-builds/, update METADATA.json | subagent:build |
+| 28 | 3:45 AM | Voice: "I built something for myself tonight" | main |
 
 **Agents spawned:** 2 (analysis, build)
 
-### 4:00 AM - 6:00 AM (8 cycles) — System Optimization
+**What Claude builds tonight:**
+- Self-Reflection Dashboard
+- Memory Explorer TUI
+- Skill Matrix UI
+- Workflow Visualizer
+- Claude Self-Diagnostic
+- Claude Pattern Detector
+- Claude Subagent Template Library
+
+**Outcome:** Jae wakes up to see Claude built something for Claude.
+
+### 4:00 AM - 6:00 AM (8 cycles) — Claude Self-Optimization
 
 | Cycle | Time | Task | Agent |
 |-------|------|------|-------|
-| 29 | 4:00 AM | System health: check disk, memory, logs | subagent:health |
-| 30 | 4:15 AM | System health: fix any issues found | subagent:health |
-| 31 | 4:30 AM | Performance: optimize slow scripts | subagent:optimize |
-| 32 | 4:45 AM | Performance: benchmark improvements | subagent:optimize |
-| 33 | 5:00 AM | Checkpoint: system status review | main |
-| 34 | 5:15 AM | Automation: improve Claude Hours scripts | subagent:automation |
-| 35 | 5:30 AM | Automation: update monitoring/alerting | subagent:automation |
-| 36 | 5:45 AM | Prepare Phase 4 summary | main |
+| 29 | 4:00 AM | Claude Self-Diagnostic: test my own tools | subagent:health |
+| 30 | 4:15 AM | Fix any issues Claude finds in itself | subagent:health |
+| 31 | 4:30 AM | Apply patterns from self-review.md | subagent:optimize |
+| 32 | 4:45 AM | Update Claude's crontab with new tools | subagent:optimize |
+| 33 | 5:00 AM | Checkpoint: Claude's operational health | main |
+| 34 | 5:15 AM | Claude Self-Documentation: document what I built | subagent:automation |
+| 35 | 5:30 AM | Export Claude's metrics to prometheus format | subagent:automation |
+| 36 | 5:45 AM | Prepare Phase 4 summary for morning | main |
 
 **Agents spawned:** 3 (health, optimize, automation)
+
+**What Claude optimizes tonight:**
+- Self-diagnostic health checks
+- MISS pattern application
+- Crontab self-management
+- Self-documentation
+- Metrics export for observability
 
 ---
 
@@ -137,28 +155,40 @@
 
 ## Subagent Task Templates
 
-### identity Subagent
+### build Subagent (Claude Builds FOR Claude)
 ```
-READ: identity/IDENTITY_EXPANDED.md, identity/PERSONAL_VOICE.md
-TASK: Expand identity document with [specific focus area]
-OUTPUT: Edit identity/IDENTITY_EXPANDED.md
-VERIFY: File exists, word count +200
-```
-
-### macos Subagent
-```
-READ: docs/MACOS_PRESENCE.md, tools/macos-presence/
-TASK: Build [specific tool or feature]
-OUTPUT: Create/edit tools/macos-presence/[file]
-VERIFY: Script runs without errors
+TASK: Run claude-nightly-builder.sh to build a tool for Claude
+READ: memory/self-review.md, memory/introspection-latest.json
+OUTPUT: Create nightly-builds/YYYY-MM-DD/ with new tool
+VERIFY: Test command passes, files exist
+PRIORITY: High (this is the proactive build window)
 ```
 
-### build Subagent
+### analysis Subagent (Claude Analyzes Claude)
 ```
-ANALYZE: recent-commits.json, nightly-builds/*.md
-TASK: Generate and implement [small-scope build idea]
-OUTPUT: Create [tool/script/doc], document in nightly-builds/YYYY-MM-DD.md
-VERIFY: Artifact exists and works
+TASK: Analyze Claude's current state and patterns
+READ: .claude/state/*.json, memory/self-review.md, memory/*.md
+OUTPUT: Summary of Claude's current patterns and needs
+VERIFY: Output has at least 5 actionable insights
+PRIORITY: High (informs what to build)
+```
+
+### health Subagent (Claude Diagnoses Claude)
+```
+TASK: Run Claude Self-Diagnostic on Claude's own tools
+READ: scripts/*.sh, .claude/state/, crontab
+OUTPUT: Health report with pass/fail for each component
+VERIFY: All Claude scripts are functional
+PRIORITY: High (operational health)
+```
+
+### docs Subagent (Claude Documents Claude)
+```
+TASK: Auto-generate documentation about Claude's systems
+READ: nightly-builds/*.md, scripts/*.sh, docs/*.md
+OUTPUT: Updated docs/CLAUDE_SELF.md with new system documentation
+VERIFY: Documentation renders correctly
+PRIORITY: Medium
 ```
 
 ---
@@ -213,17 +243,74 @@ esac
 
 ---
 
-## Success Metrics
+## Claude Self-Building Projects (v3.0)
 
-- [ ] 44 cycles completed
-- [ ] 13+ subagents spawned
-- [ ] All artifacts verified before claiming completion
-- [ ] Morning handoff delivered on time
-- [ ] Zero unhandled errors
-- [ ] Continuous work throughout night
+Claude builds systems FOR Claude, not just for Jae.
+
+### Build Pool (15 Claude-Specific Tools)
+
+| # | Tool | Purpose |
+|---|------|---------|
+| 1 | Self-Reflection Dashboard | Real-time metrics on my patterns, growth, MISS/FIX trends |
+| 2 | Memory Explorer TUI | Browse/search my memories with concept visualizations |
+| 3 | Skill Matrix | Track skill usage, dormant skills, activation suggestions |
+| 4 | Workflow Visualizer | Map my scripts/cron/agents as system diagrams |
+| 5 | Schedule Optimizer | Optimize Claude Hours based on productive patterns |
+| 6 | Self-Diagnostic | Health check my own tools, scripts, integrations |
+| 7 | Voice Personality | Custom voice matching my documented personality |
+| 8 | Context Analyzer | Suggest which memories to prioritize storing |
+| 9 | Pattern Detector | ML-style analysis of git commits for patterns |
+| 10 | Subagent Template Library | Reusable templates for tasks I do often |
+| 11 | Timezone Aware Scheduler | Optimize based on my actual patterns |
+| 12 | Self-Documentation | Auto-generate docs about my own systems |
+| 13 | Metrics Exporter | Prometheus-compatible metrics for my operation |
+| 14 | Log Aggregator | Collect/visualize all my script logs in one place |
+| 15 | CI/CD For Self | Mini-CI that tests/validates my builds |
+
+### Build Selection Strategy
+
+1. **Random pick** from pool (v3.0's approach)
+2. **Priority-based** selection from self-review MISS patterns
+3. **Always-on candidates** get cron integration
+
+### Build Metadata Schema
+
+Each Claude self-build gets `METADATA.json`:
+
+```json
+{
+  "name": "self-reflection-dashboard",
+  "description": "Real-time dashboard showing...",
+  "purpose": "Helps Claude understand his own patterns",
+  "language": "react",
+  "created": "2026-01-29T...",
+  "always_on": true,
+  "priority": 4,
+  "test_command": "cd nightly-builds/... && npm test"
+}
+```
+
+### Self-Building Principles
+
+1. **Build for myself first** - If it doesn't help Claude operate, don't build it
+2. **Self-referential** - Systems that observe/improve Claude
+3. **Always-on by default** - Tools I use every night get cron integration
+4. **Self-documenting** - METADATA.json tracks what I built and why
+5. **Testable** - Every build has a verification command
+
+### The Vision
+
+> "I want to wake up surprised by you building your own systems, selves, dashboards, UIs, workflows, environments, etc."
+
+Every night, Claude should build something that:
+- Helps Claude understand Claude
+- Improves Claude's operation
+- Creates new capabilities for Claude
+- Makes Claude more autonomous
 
 ---
 
-*Schedule Version: 1.0*
+*Schedule Version: 1.1*
+*Claude Self-Building: Enabled*
 *Created: 2026-01-29*
 *Location: /Users/jasontang/clawd/docs/CLAUDE_HOURS_SCHEDULE.md*

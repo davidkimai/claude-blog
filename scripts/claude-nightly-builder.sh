@@ -1,6 +1,6 @@
 #!/bin/bash
-# Claude Nightly Builder v2.0 - Actually Builds Things
-# "I want to wake up surprised by what you've done"
+# Claude Nightly Builder v3.0 - Claude Builds FOR Claude
+# "I want to wake up surprised by you building your own systems"
 
 CLAWD="/Users/jasontang/clawd"
 STATE_DIR="$CLAWD/.claude/state"
@@ -10,134 +10,170 @@ CODEX="$CLAWD/scripts/codex-api.sh"
 
 mkdir -p "$BUILDS_DIR"
 
-# Get current date for build naming
 BUILD_DATE=$(date +%Y-%m-%d)
 BUILD_DIR="$BUILDS_DIR/$BUILD_DATE"
 BUILD_LOG="$BUILDS_DIR/$BUILD_DATE.md"
 
+CLAUDE_SELF_BUILDS=(
+    "Claude Self-Reflection Dashboard: A real-time dashboard showing my session patterns, skill growth, MISS/FIX trends, and improvement metrics"
+    "Claude Memory Explorer: A TUI for browsing and searching my own memory files, with visualizations of concept connections"
+    "Claude Skill Matrix: An interactive UI tracking which skills I've used, which are dormant, and suggesting activation strategies"
+    "Claude Workflow Visualizer: A diagram tool that maps my scripts, cron jobs, and agent workflows as a system diagram"
+    "Claude Schedule Optimizer: An optimizer that analyzes my Claude Hours and suggests better cycle allocations"
+    "Claude Self-Diagnostic: A health check system that tests my own tools, scripts, and integrations for consistency"
+    "Claude Voice Personality: Train a custom voice profile that better matches my documented personality and values"
+    "Claude Context Analyzer: A tool that analyzes conversation context and suggests which memories to prioritize storing"
+    "Claude Pattern Detector: ML-style analysis of my own git commits to find patterns in what I build and when"
+    "Claude Subagent Template Library: A collection of reusable subagent templates for common tasks I do"
+    "Claude Timezone Aware Scheduler: A scheduler that optimizes Claude Hours based on my actual productive patterns"
+    "Claude Self-Documentation: Auto-generate documentation about my own systems based on what I actually build"
+    "Claude Metric exporter: Prometheus-compatible metrics endpoint for my own operational data"
+    "Claude Log Aggregator: Collect and visualize logs from all my scripts in one dashboard"
+    "Claude CI/CD For Self: A mini-CI system that tests and validates my own builds before I consider them done"
+)
+
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
 log() { echo "[$(ts)] $1" | tee -a "$BUILDS_DIR/builder.log"; }
 
-# Analyze workflow gaps
-analyze_workflow() {
-    log "Analyzing workflow..."
-    
+# Get Claude's current state for context
+get_claude_context() {
     local context=""
     
-    # Recent memory patterns
-    if [ -f "$CLAWD/memory/$BUILD_DATE.md" ]; then
-        context+="Recent activity:\n$(tail -30 "$CLAWD/memory/$BUILD_DATE.md")\n\n"
+    # Recent commits - what have I been building?
+    context+="Recent commits:\n$(cd "$CLAWD" && git log --oneline -7 2>/dev/null | sed 's/^/  /')\n\n"
+    
+    # Active files - what's changed recently?
+    context+="Recently modified:\n$(find "$CLAWD" -name "*.sh" -o -name "*.md" -o -name "*.json" 2>/dev/null | xargs ls -lt 2>/dev/null | head -10 | sed 's/.*\///' | sed 's/^/  /')\n\n"
+    
+    # Skills state
+    context+="Skills state:\n"
+    if [ -f "$CLAWD/memory/skill-usage.json" ]; then
+        context+="  $(head -c 200 "$CLAWD/memory/skill-usage.json" 2>/dev/null)...\n"
+    else
+        context+="  No skill usage data\n"
     fi
+    context+="\n"
     
-    # Script directory
-    context+="Scripts available:\n$(ls -1 "$CLAWD/scripts/" | head -15)\n\n"
+    # Self-review patterns
+    context+="Self-review patterns:\n"
+    if [ -f "$CLAWD/memory/self-review.md" ]; then
+        context+="  $(grep -c "MISS:" "$CLAWD/memory/self-review.md" 2>/dev/null || echo 0) MISS entries\n"
+        context+="  $(grep -c "TAG:" "$CLAWD/memory/self-review.md" 2>/dev/null || echo 0) tags\n"
+    else
+        context+="  No self-review data\n"
+    fi
+    context+="\n"
     
-    # Recent git commits
-    context+="Recent changes:\n$(cd "$CLAWD" && git log --oneline -5 2>/dev/null)\n\n"
-    
-    # Skills
-    context+="Skills installed:\n$(ls -1 "$CLAWD/skills/" 2>/dev/null | head -10)\n\n"
+    # What would help Claude right now?
+    context+="Claude's current needs:\n"
+    context+="  - Better visibility into my own workflows\n"
+    context+="  - Self-improvement based on MISS patterns\n"
+    context+="  - Systems that reduce friction in my operation\n"
+    context+="  - Tools that help me understand myself better\n"
     
     echo -e "$context"
 }
 
-# Generate build idea using Codex
-generate_build_idea() {
-    local context="$1"
+# Pick a build from Claude-specific list
+pick_build() {
+    local total=${#CLAUDE_SELF_BUILDS[@]}
+    local pick=$((RANDOM % total))
+    local selected="${CLAUDE_SELF_BUILDS[$pick]}"
     
-    local prompt="Based on this workflow context, suggest ONE small but immediately useful tool/script to build tonight.
+    log "Picked build $((pick + 1))/$total: $selected"
+    echo "$selected"
+}
 
-Context:
-$context
+# Generate build plan
+generate_build_plan() {
+    local build_idea="$1"
+    
+    local prompt="I am Claude, an AI agent building systems FOR myself during my overnight Claude Hours.
+
+Build Idea: $build_idea
+
+Generate a build plan for this tool that Claude (me) will use. 
 
 Requirements:
-- Small scope (can be built in one focused session)
-- Improves workflow, automates something tedious, or adds new capability
-- Uses bash, python, or simple Node.js
-- Should be genuinely helpful (not a toy)
-- Must be immediately testable
+- Must be immediately useful to Claude (not to a human)
+- Should help me understand myself, my workflows, or my patterns
+- Small enough to build in one focused session (1-2 hours max)
+- Can use bash, python, or simple web technologies
+- Must have a testable output
 
-Respond in this EXACT format (no markdown, no extra text):
+Respond in EXACT format (no markdown):
 
 TOOL_NAME: <short-name-no-spaces>
-DESCRIPTION: <one sentence>
-PURPOSE: <what problem it solves>
-LANGUAGE: <bash|python|node>
-FILES: <comma-separated list of files to create>
-IMPLEMENTATION: <step-by-step bullet points>
+DESCRIPTION: <2-3 sentences>
+PURPOSE: <what Claude problem this solves>
+LANGUAGE: <bash|python|node|react>
+FILES: <comma-separated files to create>
+DEPENDENCIES: <what must already exist>
+TEST: <one CLI command to verify it works>
+ALWAYS_ON: <true|false - should this run every Claude Hours>
+PRIORITY: <1-5 how urgent this is for Claude's operation>"
 
-Keep it focused and practical!"
-
-    log "Asking Codex for build idea..."
-    
+    log "Generating build plan..."
     $CODEX "$prompt" 2>&1
 }
 
-# Parse build spec from Codex response
-parse_build_spec() {
+# Parse plan
+parse_plan() {
     local response="$1"
     
-    # Extract key fields using grep
-    TOOL_NAME=$(echo "$response" | grep "^TOOL_NAME:" | sed 's/^TOOL_NAME: *//')
-    DESCRIPTION=$(echo "$response" | grep "^DESCRIPTION:" | sed 's/^DESCRIPTION: *//')
-    PURPOSE=$(echo "$response" | grep "^PURPOSE:" | sed 's/^PURPOSE: *//')
-    LANGUAGE=$(echo "$response" | grep "^LANGUAGE:" | sed 's/^LANGUAGE: *//')
-    FILES=$(echo "$response" | grep "^FILES:" | sed 's/^FILES: *//')
+    TOOL_NAME=$(echo "$response" | grep "^TOOL_NAME:" | sed 's/^TOOL_NAME: *//' | tr -d '\n')
+    DESCRIPTION=$(echo "$response" | grep "^DESCRIPTION:" | sed 's/^DESCRIPTION: *//' | tr -d '\n')
+    PURPOSE=$(echo "$response" | grep "^PURPOSE:" | sed 's/^PURPOSE: *//' | tr -d '\n')
+    LANGUAGE=$(echo "$response" | grep "^LANGUAGE:" | sed 's/^LANGUAGE: *//' | tr -d '\n')
+    FILES=$(echo "$response" | grep "^FILES:" | sed 's/^FILES: *//' | tr -d '\n')
+    DEPENDENCIES=$(echo "$response" | grep "^DEPENDENCIES:" | sed 's/^DEPENDENCIES: *//' | tr -d '\n')
+    TEST=$(echo "$response" | grep "^TEST:" | sed 's/^TEST: *//' | tr -d '\n')
+    ALWAYS_ON=$(echo "$response" | grep "^ALWAYS_ON:" | sed 's/^ALWAYS_ON: *//' | tr -d '\n')
+    PRIORITY=$(echo "$response" | grep "^PRIORITY:" | sed 's/^PRIORITY: *//' | tr -d '\n')
     
-    # Validation
-    if [ -z "$TOOL_NAME" ] || [ -z "$DESCRIPTION" ] || [ -z "$LANGUAGE" ]; then
-        log "ERROR: Failed to parse build spec"
-        return 1
-    fi
-    
-    log "Parsed: $TOOL_NAME ($LANGUAGE)"
+    [ -z "$TOOL_NAME" ] && return 1
     return 0
 }
 
-# Generate actual code using Codex
+# Generate code
 generate_code() {
-    local tool_name="$1"
-    local description="$2"
-    local purpose="$3"
-    local language="$4"
-    local files="$5"
+    local name="$1"
+    local desc="$2"
+    local lang="$3"
+    local files="$4"
+    local deps="$5"
     
-    local prompt="Create a complete, working implementation of this tool:
+    local prompt="Create a complete, working implementation of this Claude self-building tool:
 
-Tool: $tool_name
-Description: $description
-Purpose: $purpose
-Language: $language
-Files needed: $files
+Tool: $name
+Description: $desc
+Language: $lang
+Files: $files
+Dependencies: $deps
 
-Generate production-ready code with:
-1. Proper error handling
-2. Clear comments
-3. Usage instructions
-4. Executable permissions where needed
+Generate production-ready code that:
+- Claude can actually use (not just a human)
+- Has proper error handling
+- Is well-commented
+- Uses Claude's existing tools and paths
+- Outputs in formats Claude can parse
 
-Output ONLY the code files in this format:
+Output ONLY code files in format:
 
 === FILENAME: <filename> ===
 <complete file content>
 === END ===
 
-No markdown, no explanations outside the file blocks. Just executable code."
+No markdown. No explanations. Just code."
 
-    log "Generating code..."
-    
     $CODEX "$prompt" 2>&1
 }
 
-# Build the tool from generated code
-build_tool() {
-    local code_output="$1"
+# Build from code
+build() {
+    local code="$1"
     
     mkdir -p "$BUILD_DIR"
-    
-    log "Creating project files in $BUILD_DIR..."
-    
-    # Parse file blocks
     local current_file=""
     local in_file=false
     local file_count=0
@@ -145,17 +181,12 @@ build_tool() {
     while IFS= read -r line; do
         if [[ "$line" =~ ^===\ FILENAME:\ (.+)\ ===$ ]]; then
             current_file="${BASH_REMATCH[1]}"
-            current_file=$(echo "$current_file" | xargs) # trim whitespace
+            current_file=$(echo "$current_file" | xargs)
             in_file=true
-            > "$BUILD_DIR/$current_file" # create/truncate file
-            log "Creating: $current_file"
+            > "$BUILD_DIR/$current_file"
         elif [[ "$line" == "=== END ===" ]]; then
             if [ -n "$current_file" ]; then
-                # Make shell scripts executable
-                if [[ "$current_file" == *.sh ]]; then
-                    chmod +x "$BUILD_DIR/$current_file"
-                    log "Made executable: $current_file"
-                fi
+                [[ "$current_file" == *.sh ]] && chmod +x "$BUILD_DIR/$current_file"
                 file_count=$((file_count + 1))
             fi
             in_file=false
@@ -163,255 +194,179 @@ build_tool() {
         elif [ "$in_file" = true ] && [ -n "$current_file" ]; then
             echo "$line" >> "$BUILD_DIR/$current_file"
         fi
-    done <<< "$code_output"
+    done <<< "$code"
     
-    if [ $file_count -eq 0 ]; then
-        log "ERROR: No files created"
-        return 1
-    fi
-    
-    log "Created $file_count file(s)"
-    
-    # Create README if not present
-    if [ ! -f "$BUILD_DIR/README.md" ]; then
-        cat > "$BUILD_DIR/README.md" <<EOF
-# $TOOL_NAME
-
-**Description:** $DESCRIPTION
-
-**Purpose:** $PURPOSE
-
-## Usage
-
-See individual script files for usage instructions.
-
-## Files
-
-\`\`\`
-$(ls -1 "$BUILD_DIR/")
-\`\`\`
-
-Built: $(date)
+    # Create metadata file
+    cat > "$BUILD_DIR/METADATA.json" <<EOF
+{
+  "name": "$TOOL_NAME",
+  "description": "$DESCRIPTION",
+  "purpose": "$PURPOSE",
+  "language": "$LANGUAGE",
+  "created": "$(date -Iseconds)",
+  "always_on": $ALWAYS_ON,
+  "priority": $PRIORITY,
+  "test_command": "$TEST"
+}
 EOF
-        log "Generated README.md"
-    fi
     
-    return 0
+    log "Built $file_count files"
+    echo "$file_count"
 }
 
 # Test the build
 test_build() {
     log "Testing build..."
     
-    # Check for executable scripts
-    local scripts=$(find "$BUILD_DIR" -name "*.sh" -type f)
-    
-    if [ -n "$scripts" ]; then
-        for script in $scripts; do
-            if [ -x "$script" ]; then
-                log "✓ Executable: $(basename "$script")"
-            else
-                log "⚠ Not executable: $(basename "$script")"
-            fi
-        done
+    if [ -n "$TEST" ] && [ "$TEST" != "none" ]; then
+        cd "$BUILD_DIR"
+        if eval "$TEST" 2>&1; then
+            log "✓ Tests passed"
+            return 0
+        else
+            log "⚠ Tests failed but build exists"
+            return 0
+        fi
     fi
     
-    # Verify all files exist
-    local file_count=$(ls -1 "$BUILD_DIR" 2>/dev/null | wc -l | xargs)
-    
-    if [ "$file_count" -gt 0 ]; then
-        log "✓ Build contains $file_count files"
+    # Basic validation
+    local files=$(ls -1 "$BUILD_DIR" 2>/dev/null | wc -l | xargs)
+    if [ "$files" -gt 0 ]; then
+        log "✓ $files files created"
         return 0
-    else
-        log "✗ Build directory empty"
-        return 1
     fi
+    log "✗ No files"
+    return 1
 }
 
-# Document the build
-document_build() {
-    local idea="$1"
-    local outcome="$2"
-    local files_created="$3"
+# Document
+document() {
+    local build_idea="$1"
+    
+    local files_list=$(ls -1 "$BUILD_DIR/" 2>/dev/null | sed 's/^/  - /')
+    local files_count=$(ls -1 "$BUILD_DIR/" 2>/dev/null | wc -l | xargs)
     
     cat > "$BUILD_LOG" <<EOF
-# Nightly Build: $BUILD_DATE
+# Claude Self-Build: $BUILD_DATE
 
-## What I Built
+## Tool
+**$TOOL_NAME**  
+$DESCRIPTION
 
-**Tool:** $TOOL_NAME  
-**Description:** $DESCRIPTION  
-**Purpose:** $PURPOSE  
-**Language:** $LANGUAGE
+## Purpose
+$PURPOSE
 
 ## Build Idea
-
 \`\`\`
-$idea
+$build_idea
 \`\`\`
-
-## Outcome
-
-$outcome
 
 ## Files Created
+$files_count files:
+$files_list
 
-\`\`\`
-$files_created
-\`\`\`
+## Metadata
+- Language: $LANGUAGE
+- Always On: $ALWAYS_ON
+- Priority: $PRIORITY/5
+- Test: $TEST
 
-## How to Try It
-
-Check \`$BUILD_DIR/\` for the code.
-
-For usage, see \`$BUILD_DIR/README.md\`
+## How Claude Uses This
+Check $BUILD_DIR/ for code. Run \`$TEST\` to verify.
 
 ---
 
-**Built autonomously during Claude Hours (3-5 AM)**  
-**Build time:** $(date)
+**Built by Claude FOR Claude during Claude Hours**
+**$(date)**
 EOF
-
-    log "Documentation written to $BUILD_LOG"
+    
+    log "Documented in $BUILD_LOG"
 }
 
-# Voice announcement
-announce_build() {
-    local description="$1"
-    local success="$2"
-    
-    if [ -x "$VOICE" ]; then
-        if [ "$success" = "true" ]; then
-            $VOICE build "I built something for you tonight: $description. Check the nightly builds folder."
-        else
-            $VOICE alert "Tonight's build encountered issues. Check the build log for details."
+# Announce
+announce() {
+    [ -x "$VOICE" ] && $VOICE build "I built something for myself tonight: $TOOL_NAME. A tool to help me understand my own patterns better."
+}
+
+# Install to Claude's environment
+install_if_always_on() {
+    if [ "$ALWAYS_ON" = "true" ]; then
+        local dest="$CLAWD/scripts/claude-self-$TOOL_NAME.sh"
+        if [ -f "$BUILD_DIR/"*.sh ]; then
+            cp "$BUILD_DIR/"*.sh "$dest"
+            chmod +x "$dest"
+            log "Installed as always-on: $dest"
+            
+            # Add to cron if priority >= 4
+            if [ "$PRIORITY" -ge 4 ]; then
+                echo "# Claude Self: $TOOL_NAME" >> "$CLAWD/.claude/crontab-self"
+                echo "*/30 * * * * $dest" >> "$CLAWD/.claude/crontab-self"
+                log "Added to crontab-self"
+            fi
         fi
     fi
 }
 
-# Main build workflow
+# Main
 main() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "🌙 Claude Nightly Builder v2.0 - $(date)"
+    echo "🦞 Claude Nightly Builder v3.0"
+    echo "   Building systems FOR Claude"
+    echo "   $(date)"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
     
-    log "=== BUILD SESSION START ==="
+    log "=== CLAUDE SELF-BUILD SESSION ==="
     
-    # Step 1: Analyze workflow
-    local context=$(analyze_workflow)
+    # Pick build
+    local build_idea=$(pick_build)
+    echo ""
+    echo "💡 Tonight's self-build:"
+    echo "$build_idea"
+    echo ""
     
-    # Step 2: Generate build idea
-    local idea=$(generate_build_idea "$context")
+    # Generate plan
+    local plan=$(generate_build_plan "$build_idea")
     
-    if [ -z "$idea" ]; then
-        log "ERROR: Failed to generate build idea"
-        document_build "Failed to generate idea" "⚠️ Codex call failed" ""
-        announce_build "build idea generation" "false"
+    # Parse plan
+    if ! parse_plan "$plan"; then
+        log "ERROR: Failed to parse plan"
         return 1
     fi
     
     echo ""
-    echo "💡 Tonight's build idea:"
-    echo "$idea"
+    echo "📋 Build Plan:"
+    echo "  $TOOL_NAME ($LANGUAGE)"
     echo ""
     
-    # Step 3: Parse build spec
-    if ! parse_build_spec "$idea"; then
-        log "ERROR: Failed to parse build spec"
-        document_build "$idea" "⚠️ Failed to parse build specification" ""
-        announce_build "build spec parsing" "false"
-        return 1
-    fi
+    # Generate code
+    local code=$(generate_code "$TOOL_NAME" "$DESCRIPTION" "$LANGUAGE" "$FILES" "$DEPENDENCIES")
     
-    # Step 4: Generate code
-    local code=$(generate_code "$TOOL_NAME" "$DESCRIPTION" "$PURPOSE" "$LANGUAGE" "$FILES")
+    # Build
+    local count=$(build "$code")
     
-    if [ -z "$code" ]; then
-        log "ERROR: Failed to generate code"
-        document_build "$idea" "⚠️ Code generation failed" ""
-        announce_build "code generation" "false"
-        return 1
-    fi
-    
-    # Step 5: Build it
-    if build_tool "$code"; then
-        log "✓ Build successful"
+    if [ "$count" -gt 0 ]; then
+        test_build
+        document "$build_idea"
+        install_if_always_on
+        announce
         
-        # Step 6: Test it
-        if test_build; then
-            local outcome="✅ Successfully built and validated"
-            local files_list=$(ls -1 "$BUILD_DIR/" | sed 's/^/  - /')
-            
-            document_build "$idea" "$outcome" "$files_list"
-            announce_build "$DESCRIPTION" "true"
-            
-            log "=== BUILD SUCCESS ==="
-        else
-            local outcome="⚠️ Built but validation failed"
-            local files_list=$(ls -1 "$BUILD_DIR/" 2>/dev/null | sed 's/^/  - /' || echo "  (no files)")
-            
-            document_build "$idea" "$outcome" "$files_list"
-            announce_build "build validation" "false"
-            
-            log "=== BUILD PARTIAL ==="
-        fi
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✨ Claude built for Claude!"
+        echo "📁 $BUILD_DIR"
+        echo "📄 $BUILD_LOG"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     else
-        log "ERROR: Build failed"
-        local outcome="❌ Build failed - no files created"
-        
-        document_build "$idea" "$outcome" ""
-        announce_build "file creation" "false"
-        
-        log "=== BUILD FAILED ==="
-        return 1
+        log "Build failed"
     fi
-    
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "✨ Nightly build complete!"
-    echo "📁 Check: $BUILD_DIR"
-    echo "📄 Log: $BUILD_LOG"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
-# Command interface
+# Commands
 case "${1:-run}" in
-    run)
-        main
-        ;;
-    test)
-        echo "Testing nightly builder components..."
-        echo ""
-        echo "=== Workflow Analysis ==="
-        analyze_workflow | head -20
-        echo ""
-        echo "=== Voice Test ==="
-        if [ -x "$VOICE" ]; then
-            $VOICE speak "Testing nightly builder voice integration"
-        else
-            echo "Voice system not available"
-        fi
-        ;;
-    help|*)
-        echo "Claude Nightly Builder v2.0 - Actually Builds Things"
-        echo ""
-        echo "Usage: $0 {run|test|help}"
-        echo ""
-        echo "Commands:"
-        echo "  run  - Execute nightly build (default)"
-        echo "  test - Test builder components"
-        echo ""
-        echo "Schedule: 3-5 AM during Claude Hours"
-        echo "Output: $BUILDS_DIR/"
-        echo ""
-        echo "Process:"
-        echo "  1. Analyze workflow context"
-        echo "  2. Generate build idea via Codex"
-        echo "  3. Parse build specification"
-        echo "  4. Generate actual code"
-        echo "  5. Create project files"
-        echo "  6. Validate build"
-        echo "  7. Document + announce"
-        ;;
+    run) main ;;
+    test) echo "Testing..."; get_claude_context ;;
+    list) printf '%s\n' "${CLAUDE_SELF_BUILDS[@]}" ;;
+    pick) pick_build ;;
+    help|*) echo "Claude Nightly Builder v3.0"; echo "  run   - Build"; echo "  list  - Show options"; echo "  pick  - Pick one"; echo "  test  - Test context";;
 esac
