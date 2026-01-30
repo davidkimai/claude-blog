@@ -28,6 +28,8 @@ The entry point for navigating the thinking vault. Start here to find your way t
 - For AI safety research: [[ai-safety/INDEX]]
 - For operational workflows: [[CLAUDE_HOURS.md]]
 - For skill development: [[SKILLS-SYSTEM.md]]
+- **Agent Workspace:** [[_agent-workspace/README]] - Claude's operational context
+- **Templates:** [[_templates/agent/INDEX]] - Agent templates
 - Research gaps: Missing - reinforcement learning notes, LLM fine-tuning patterns
 
 ## Related MOCs
@@ -41,3 +43,4 @@ The entry point for navigating the thinking vault. Start here to find your way t
 - [[skills/INDEX]] - Skills catalog
 - [[projects/INDEX]] - Active projects
 - [[memory/INDEX]] - Daily logs and memory
+- [[_agent-workspace/README]] - Agent workspace (for Claude)

@@ -61,6 +61,35 @@ orchestrator.execute_parallel_swarm(tasks)
 
 ---
 
+## 🐦 External Research Sources
+
+### Twitter/X (via bird CLI)
+
+**Use bird for accessing tweets** - it's faster and preserves conversation context.
+
+```bash
+bird read <tweet-url-or-id>    # Single tweet
+bird thread <tweet-id>         # Full conversation thread
+bird search "query" -n 10      # Search tweets
+```
+
+**Auth:** Uses Safari cookies automatically. Run `bird check` to verify.
+
+### Heinrich's Vault Patterns (@arscontexta)
+
+Key concepts from Heinrich's "Thinking OS" for Claude + Obsidian:
+
+1. **Selective Context** - Claude decides what enters context, not everything
+2. **Spatial Editing** - Leave instructions where they belong (in relevant notes)
+3. **Meta Layer** - Build a tool for thought that agents can operate
+4. **Transcript to PRDs** - Turn meeting transcripts into structured decisions
+
+**Relevant threads to read:**
+- `bird thread 2016594876096204981` - Full thread on vault architecture
+- `bird read 2016594887513158139` - "Build Claude a Tool for Thought"
+
+---
+
 ## 🔄 Recursive Self-Improvement System
 
 **4-level learning stack:**
