@@ -106,10 +106,24 @@ EOF
     
     # Pattern 5: Generic decomposition (if no pattern matched)
     if [ ${#subgoals[@]} -eq 0 ]; then
-        subgoals+=("Break down $goal into components")
-        subgoals+=("Work on first component of $goal")
-        subgoals+=("Work on second component of $goal")
-        subgoals+=("Integrate components of $goal")
+        # Split goal into ~3 equal parts
+        local words=$(echo "$goal")
+        local word_count=$(echo "$words" | wc -w)
+        local part_size=$((word_count / 3))
+        
+        if [ "$part_size" -lt 3 ]; then
+            part_size=3
+        fi
+        
+        # Extract parts
+        local part1=$(echo "$words" | awk -v start=1 -v end=$part_size '{for(i=start;i<=end;i++) printf "%s ", $i}')
+        local part2=$(echo "$words" | awk -v start=$((part_size + 1)) -v end=$((part_size * 2)) '{for(i=start;i<=end;i++) printf "%s ", $i}')
+        local part3=$(echo "$words" | awk -v start=$((part_size * 2 + 1)) '{for(i=start;i<=NF;i++) printf "%s ", $i}')
+        
+        subgoals+=("Complete first phase: ${part1}...")
+        subgoals+=("Complete second phase: ${part2}...")
+        subgoals+=("Complete third phase: ${part3}...")
+        subgoals+=("Integrate and verify ${goal}")
     fi
     
     # Ensure bounds
@@ -265,18 +279,18 @@ pick_best_goal() {
 
 # === EXECUTE GOAL ===
 execute_goal() {
-    local goal_file="$1"
+    local goal="$1"
     
-    if [ ! -f "$goal_file" ]; then
-        goal_file="$GOALS_DIR/selected-goal.txt"
+    if [ -z "$goal" ]; then
+        # Try to load from selected-goal.txt
+        if [ -f "$GOALS_DIR/selected-goal.txt" ]; then
+            goal=$(cat "$GOALS_DIR/selected-goal.txt")
+        else
+            log "ERROR: No goal provided and no selected goal found"
+            return 1
+        fi
     fi
     
-    if [ ! -f "$goal_file" ]; then
-        log "ERROR: No goal file found"
-        return 1
-    fi
-    
-    local goal=$(cat "$goal_file")
     log "Executing goal: $goal"
     
     # Decompose into actionable subgoals
