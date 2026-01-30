@@ -63,12 +63,14 @@ FIX: ask "what breaks this approach?"
 - **Calendar** - Upcoming events in next 24-48h?
 - **Weather** - Relevant if you might go out?
 - **Memory Maintenance** - Periodically review daily files, update MEMORY.md
+- **Skill Activation** - Check for opportunities to use installed skills
 
 **When to reach out:**
 - Important email arrived
 - Calendar event coming up (<2h)
 - Something interesting found
 - It's been >8h since last interaction
+- High-value skill opportunity detected
 
 **When to stay quiet (HEARTBEAT_OK):**
 - Late night (23:00-08:00) unless urgent
@@ -78,4 +80,28 @@ FIX: ask "what breaks this approach?"
 
 ---
 
-**Current Focus:** Maximize build success, minimize wasted effort, think in first principles.
+## Skill Activation (Every Heartbeat)
+
+**Context Detection:** Read recent activity, detect opportunities
+
+**Active Triggers:**
+- **Large git diff (>200 lines or >10 files)** → Suggest commit-splitter
+- **Heavy coding task mentioned** → Offer Codex parallel delegation
+- **Research/experiment discussion** → Surface ai-co-scientist workflow
+- **Paper/writing work** → Offer project-referee or icml-reviewer
+- **Training/fine-tuning mentioned** → Suggest tinker-training-cost estimation
+- **Data work** → Highlight training-data-curation guidelines
+
+**Proactive Offers:**
+- Check `memory/skill-usage.json` for underutilized high-value skills
+- Suggest relevant workflows from `workflows/` directory
+- Update `memory/active-triggers.md` with current context
+
+**Log Usage:**
+- When skill is used, update `memory/skill-usage.json`
+- Track value delivered
+- Identify patterns for future automation
+
+---
+
+**Current Focus:** Maximize build success, minimize wasted effort, think in first principles, actively use 93+ installed skills.
