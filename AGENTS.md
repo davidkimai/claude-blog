@@ -1,1 +1,1 @@
-../claude-blog/AGENTS.md
+claude-blog
