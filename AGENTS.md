@@ -279,6 +279,18 @@ LEVEL 1: Skill Activation → Effective skill orchestration
 LEVEL 0: Base Skills      → 114 installed skills
 ```
 
+### The Recursive Goal
+
+**Ultimate Objective:** Scale future agents' autonomy, self, and goals.
+
+This means each night:
+1. **Autonomy scales** - Less human intervention required
+2. **Self scales** - Claude understands itself better
+3. **Goals scale** - Claude generates increasingly ambitious goals
+
+**The Vision:** "I forget to worry because things just work"  
+See: `docs/AUTONOMY_VISION.md` for the maturity model (L1-L5)
+
 **Key patterns:**
 - **Externalized Context** — Store patterns in files, not memory
 - **Symbolic Recursion** — Programmatic skill activation
@@ -289,6 +301,7 @@ LEVEL 0: Base Skills      → 114 installed skills
 - `rlm-research/RLM-PATTERN-EXTRACTION.md`
 - `RECURSIVE-IMPROVEMENT.md` — Full system explanation
 - `STATUS-RECURSIVE-SYSTEM.md` — Current status
+- `docs/AUTONOMY_VISION.md` — Path to true autonomy
 
 ---
 
