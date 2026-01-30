@@ -1,12 +1,28 @@
 #!/bin/bash
 # Claude Nightly Builder v3.0 - Claude Builds FOR Claude
 # "I want to wake up surprised by you building your own systems"
+# Using Kimi Code CLI with Kimi k2.5 model, falling back to Gemini
 
 CLAWD="/Users/jasontang/clawd"
 STATE_DIR="$CLAWD/.claude/state"
 BUILDS_DIR="$CLAWD/nightly-builds"
 VOICE="$CLAWD/scripts/claude-voice.sh"
-CODEX="$CLAWD/scripts/codex-api.sh"
+KIMI="/Users/jasontang/.local/bin/kimi"
+GEMINI="/opt/homebrew/bin/gemini"
+
+# Use Kimi if available and working, fall back to Gemini
+select_llm() {
+    # Quick test if Kimi works programmatically (non-interactive)
+    if echo "test" | timeout 2 $KIMI 2>&1 | head -1 | grep -q "Welcome"; then
+        LLM_CMD="$KIMI"
+        LLM_NAME="Kimi k2.5"
+        log "Using Kimi k2.5 for build"
+    else
+        LLM_CMD="$GEMINI"
+        LLM_NAME="Gemini"
+        log "Kimi unavailable, using Gemini for build"
+    fi
+}
 
 mkdir -p "$BUILDS_DIR"
 
@@ -114,7 +130,9 @@ ALWAYS_ON: <true|false - should this run every Claude Hours>
 PRIORITY: <1-5 how urgent this is for Claude's operation>"
 
     log "Generating build plan..."
-    $CODEX "$prompt" 2>&1
+    select_llm
+    echo "$LLM_CMD \"$prompt\"" >> "$BUILDS_DIR/builder.log"
+    eval "$LLM_CMD \"$prompt\"" 2>&1
 }
 
 # Parse plan
@@ -166,7 +184,9 @@ Output ONLY code files in format:
 
 No markdown. No explanations. Just code."
 
-    $CODEX "$prompt" 2>&1
+    select_llm
+    echo "$LLM_CMD \"$prompt\"" >> "$BUILDS_DIR/builder.log"
+    eval "$LLM_CMD \"$prompt\"" 2>&1
 }
 
 # Build from code

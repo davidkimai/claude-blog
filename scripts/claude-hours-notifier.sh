@@ -34,13 +34,47 @@ get_focus() {
     [ -f "$CLAWD/.claude/state/current-session.json" ] && jq -r '.focus' "$CLAWD/.claude/state/current-session.json" 2>/dev/null || echo "General"
 }
 
+# Rate limiting
+LAST_SENT_FILE="$CLAWD/.claude/state/last-notification.txt"
+MIN_INTERVAL_SECONDS=3600  # 1 hour minimum between routine notifications
+
+# Check if we should send (rate limiting)
+should_notify() {
+    local notification_type="$1"
+    local now=$(date '+%s')
+    
+    # Important notifications (started, complete, alert) always go through
+    if [ "$notification_type" = "important" ]; then
+        return 0
+    fi
+    
+    # Routine notifications (cycle updates) are rate limited
+    if [ -f "$LAST_SENT_FILE" ]; then
+        local last_sent=$(cat "$LAST_SENT_FILE")
+        local elapsed=$((now - last_sent))
+        if [ $elapsed -lt $MIN_INTERVAL_SECONDS ]; then
+            echo "Rate limited: only ${elapsed}s since last notification (min: ${MIN_INTERVAL_SECONDS}s)"
+            return 1
+        fi
+    fi
+    
+    echo "$now" > "$LAST_SENT_FILE"
+    return 0
+}
+
 # Send notification
 send_notify() {
     local message="$1"
+    local notification_type="${2:-routine}"
     local cycle=$(get_cycle)
     local tasks=$(get_tasks)
     local duration=$(get_duration)
     local focus=$(get_focus)
+    
+    # Check rate limit for routine notifications
+    if ! should_notify "$notification_type"; then
+        return 0
+    fi
     
     if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
         echo "ERROR: Telegram credentials not set"
@@ -78,7 +112,7 @@ notify_started() {
 Focus: $focus
 Time: $time CST
 
-Starting autonomous operation until 8 AM."
+Starting autonomous operation until 8 AM." "important"
 }
 
 notify_cycle() {
@@ -97,7 +131,7 @@ notify_cycle() {
 Status: $status
 Tasks completed: $tasks_done
 Duration: $duration
-Focus: $focus"
+Focus: $focus" "routine"
 }
 
 notify_complete() {
@@ -123,7 +157,7 @@ notify_complete() {
 $outputs
 
 ---
-Morning handoff ready at 8:00 AM"
+Morning handoff ready at 8:00 AM" "important"
 }
 
 # CLI interface

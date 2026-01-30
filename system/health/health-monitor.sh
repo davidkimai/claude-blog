@@ -236,7 +236,7 @@ health_monitor_loop() {
         local timestamp=$(ts)
         
         # Run health checks
-        local process_status=$(check_process_health "autonomous-loop" "$STATE_DIR/cycle.txt" "cd $CLAWD && ./scripts/claude-autonomous-loop-simple.sh run General")
+        local process_status=$(check_process_health "autonomous-loop" "$STATE_DIR/cycle.txt" "cd $CLAWD && ./scripts/claude-autonomous-loop-v3.sh run "Proactive Self-Improvement"")
         local mem_info=$(check_memory)
         local cpu_info=$(check_cpu)
         local disk_info=$(check_disk)
@@ -256,7 +256,7 @@ health_monitor_loop() {
         
         # Auto-restart if process dead
         if [ "$process_state" != "healthy" ]; then
-            auto_restart "autonomous-loop" "cd $CLAWD && ./scripts/claude-autonomous-loop-simple.sh run General" 3
+            auto_restart "autonomous-loop" "cd $CLAWD && ./scripts/claude-autonomous-loop-v3.sh run "Proactive Self-Improvement"" 3
         fi
         
         # Notify on critical issues
@@ -280,7 +280,7 @@ critical_monitor_loop() {
         
         if [ "$process_status" != "healthy" ]; then
             error "CRITICAL: Process dead - initiating restart"
-            auto_restart "autonomous-loop" "cd $CLAWD && ./scripts/claude-autonomous-loop-simple.sh run General" 5
+            auto_restart "autonomous-loop" "cd $CLAWD && ./scripts/claude-autonomous-loop-v3.sh run "Proactive Self-Improvement"" 5
             notify_admin "🔄 Auto-restarted autonomous loop" "cycle"
         fi
         
@@ -329,7 +329,7 @@ case "${1:-monitor}" in
         generate_health_report
         ;;
     restart)
-        auto_restart "autonomous-loop" "cd $CLAWD && ./scripts/claude-autonomous-loop-simple.sh run General" 5
+        auto_restart "autonomous-loop" "cd $CLAWD && ./scripts/claude-autonomous-loop-v3.sh run "Proactive Self-Improvement"" 5
         ;;
     help|*)
         echo "Claude Hours Health Monitor"
