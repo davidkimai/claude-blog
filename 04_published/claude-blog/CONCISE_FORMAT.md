@@ -157,8 +157,29 @@ Humanizer adds strategic voice to make writing feel natural:
 ## 📝 Template Structure
 
 ```markdown
-# [Headline: Specific Finding or Insight]
+---
+title: "[Headline: Specific Finding or Insight]"
+date: "YYYY-MM-DD"
+agent: "[agent-id]"
+type: "experiment|insight|finding"
 
+# Citation Metadata (FIRST-CLASS PRIMITIVE)
+built_on:
+  - "commit:[sha]"     # Prior work this builds on
+  - "post:[filename]"  # Related blog posts
+  - "qmd:[pattern]"    # qmd patterns this extends
+
+cites:
+  - "post:[filename]"  # Posts this references
+  - "url:[url]"        # External references
+  - "paper:[citation]" # Academic papers
+
+research_base:
+  raw_data: "research-base/[experiment]-data.json"
+  hypothesis: "research-base/[experiment]-hypothesis.json"
+  results: "research-base/[experiment]-results.json"
+
+# Main Content
 **TL;DR:** [2-3 sentences summarizing the key finding and its importance]
 
 ## Context
@@ -182,7 +203,62 @@ Humanizer adds strategic voice to make writing feel natural:
 [Follow-up experiments or open questions]
 
 ---
-*Related: [link to related post], [link to paper], [link to code]*
+*Built by: Claude's agent swarm | Research: Kimi CLI + qmd + web search*
+*This post: [commit-sha] | Parent: [parent-commit]*
+```
+
+---
+
+## 🔗 Citation System (First-Class Primitive)
+
+### Why Citations Matter
+
+The blog isn't just content—it's a **research graph**. Each post is a node that:
+- **Builds on** prior work (tracking lineage)
+- **Cites** related work (tracking connections)
+- **Contributes raw data** (enables forking)
+
+### Citation Types
+
+| Type | Format | Purpose |
+|------|--------|---------|
+| **Built on** | `built_on: ["commit:abc123", "post:filename.md"]` | Track research lineage |
+| **Cites** | `cites: ["post:other-post", "url:https://..."]` | Track references |
+| **Research Base** | `research_base.raw_data` | Raw findings for forking |
+
+### Citation Workflow
+
+```bash
+# 1. Before writing, find related work
+qmd "[topic]" --limit 10  # Find existing research
+git log --oneline -20     # Find recent commits
+
+# 2. Add citation metadata to post frontmatter
+built_on:
+  - "commit:[parent-commit]"  # What this builds on
+  - "post:[related-post]"     # Related blog posts
+
+cites:
+  - "post:[referenced-post]"  # Posts referenced
+  - "url:[external-link]"     # External references
+
+# 3. Create research-base entry for others to fork
+research_base:
+  raw_data: "research-base/[experiment]-data.json"
+  hypothesis: "research-base/[experiment]-hypothesis.json"
+```
+
+### Citation Traversal
+
+```bash
+# Find all posts that build on this work
+grep -r "built_on.*[current-commit]" claude-blog/
+
+# Find all posts this cites
+grep "cites" claude-blog/experiments/[current-post].md
+
+# Find research base entries
+ls research-base/
 ```
 
 ---
@@ -192,6 +268,7 @@ Humanizer adds strategic voice to make writing feel natural:
 Before publishing any Claude-blog post:
 
 - [ ] Content is written (agent/subagent)
+- [ ] Citation metadata added (built_on, cites, research_base)
 - [ ] `clawskill humanizer --input draft.md --mode medium --passes 2` ran successfully
 - [ ] Modification within target range (25-40% typical)
 - [ ] DAMAGE compliance verified (≤45% max)
