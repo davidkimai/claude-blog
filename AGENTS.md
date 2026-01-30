@@ -413,7 +413,9 @@ Pre-built multi-skill workflows in `workflows/`:
 │   ├── skill-usage.json   ← Skill analytics
 │   ├── introspection-latest.json ← Cognitive insights
 │   ├── workspace-intelligence.json ← System analysis
-│   └── nightly-builds.md  ← Build history
+│   ├── nightly-builds.md  ← Build history
+│   ├── personality-growth-log.md ← Identity development log
+│   └── supermemory-state/ ← SuperMemory cache
 ├── skills/
 │   ├── skill-orchestrator/ ← Master routing (114+ skills)
 │   ├── ai-research-orchestrator/ ← RLM-inspired research
@@ -439,6 +441,67 @@ Pre-built multi-skill workflows in `workflows/`:
 - **Memory discipline:** Write decisions to files, don't rely on memory
 - **Claude Hours output:** Draft PRs created, learnings committed
 - **Meta-skill improvement:** Pattern confidence increasing over time
+
+---
+
+## 🧠 SuperMemory Integration
+
+SuperMemory provides long-term memory storage and retrieval via API. Use for persisting important context across sessions.
+
+### Setup
+
+```bash
+# Run setup to configure API key
+./scripts/claude-hours-supermemory.sh setup
+
+# Get API key from: https://console.supermemory.ai/keys
+```
+
+### Commands
+
+| Command | Usage | Example |
+|---------|-------|---------|
+| `remember <text> [url]` | Save to memory | `remember "User prefers direct feedback"` |
+| `recall <query> [limit]` | Search memories | `recall "Jae job search" 5` |
+| `profile` | View user profile | `supermemory profile` |
+| `forget <query>` | Delete memories | `forget "temporary context"` |
+| `auto-recall [context]` | Claude Hours recall | `auto-recall conversation` |
+| `auto-capture <task> <result>` | After task completion | `auto-capture "fixed bug" "success"` |
+
+### When to Use
+
+**Use SuperMemory for:**
+- Important user preferences and patterns
+- Long-term context that files don't capture well
+- Cross-session entity tracking (people, projects, concepts)
+- Claude Hours automatic capture of learning
+
+**Use files for:**
+- Daily logs and session context
+- System configuration and documentation
+- Code, scripts, and technical artifacts
+- Anything that needs version control
+
+### Claude Hours Integration
+
+During Claude Hours, SuperMemory is used for:
+1. **Phase 1:** `auto-recall` to retrieve relevant memories
+2. **After builds:** `auto-capture` to remember what was learned
+3. **Self-review:** Recall previous MISS patterns
+
+```bash
+# Example: Recall before starting Claude Hours
+./scripts/claude-hours-supermemory.sh auto-recall "Claude Hours previous session"
+
+# Example: Capture after successful build
+./scripts/claude-hours-supermemory.sh auto-capture "Built Self-Reflection Dashboard" "Success"
+```
+
+### API Key
+
+- Get key: https://console.supermemory.ai/keys
+- Store in: `~/.clawdbot/.env.supermemory` or `$CLAWD/.env.supermemory`
+- Format: `sm_...` prefix
 
 ---
 
