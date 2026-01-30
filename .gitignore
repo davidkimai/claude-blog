@@ -134,3 +134,4 @@ nightly/
 .claude/telegram-env.sh
 .vercel
 .env*.local
+agents-config/
