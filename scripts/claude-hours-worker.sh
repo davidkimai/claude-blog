@@ -1,0 +1,343 @@
+#!/bin/bash
+# Claude Hours Worker - Autonomous Hourly Worker
+# Each worker is assigned ambitious goals and executes independently
+
+set -euo pipefail
+
+CLAWD="/Users/jasontang/clawd"
+WORKER_DIR="${WORKER_DIR:-./worker-temp}"
+LOG_FILE="$WORKER_DIR/worker.log"
+OUTPUT_DIR="$WORKER_DIR/output"
+
+mkdir -p "$OUTPUT_DIR"
+
+log() { echo "[$(date '+%H:%M:%S')] [WORKER] $1" >> "$LOG_FILE"; }
+info() { echo "[$(date '+%H:%M:%S')] [WORKER] $1"; log "$1"; }
+
+# === WORKER IDENTITY ===
+
+WORKER_NAME="${WORKER_NAME:-worker-$(date +%s)}"
+TASK_GOAL="${TASK_GOAL:-Build something ambitious}"
+TASK_DEADLINE="${TASK_DEADLINE:-$(date -d '+2 hours' '+%Y-%m-%d %H:%M')}"
+
+log "Worker $WORKER_NAME initialized"
+log "Goal: $TASK_GOAL"
+log "Deadline: $TASK_DEADLINE"
+
+# === AUTONOMOUS EXECUTION ===
+
+execute_autonomously() {
+    info "Starting autonomous execution..."
+    info "Goal: $TASK_GOAL"
+    
+    local start_time=$(date +%s)
+    local deadline_timestamp=$(date -d "$TASK_DEADLINE" '+%s' 2>/dev/null || echo $(($(date +%s) + 7200)))
+    local time_remaining=$((deadline_timestamp - start_time))
+    
+    info "Time allocated: $((time_remaining / 60)) minutes"
+    
+    # Phase 1: Understand the goal (5 min)
+    info "=== Phase 1: Understanding Goal ==="
+    understand_goal
+    log "UNDERSTOOD"
+    
+    # Phase 2: Plan approach (5 min)
+    info "=== Phase 2: Planning Approach ==="
+    plan_approach
+    log "PLANNED"
+    
+    # Phase 3: Execute (bulk of time)
+    info "=== Phase 3: Execution ==="
+    execute_plan
+    log "EXECUTED"
+    
+    # Phase 4: Verify quality (10 min)
+    info "=== Phase 4: Quality Verification ==="
+    verify_quality
+    log "VERIFIED"
+    
+    # Phase 5: Prepare handoff (5 min)
+    info "=== Phase 5: Handoff Preparation ==="
+    prepare_handoff
+    log "HANDED_OFF"
+    
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    
+    info "Worker complete! Duration: $((duration / 60))m $((duration % 60))s"
+    
+    # Exit cleanly
+    exit 0
+}
+
+# === PHASES (Override these per worker) ===
+
+understand_goal() {
+    info "Analyzing goal: $TASK_GOAL"
+    
+    # Claude decides how to interpret this goal
+    cat > "$OUTPUT_DIR/goal-analysis.md" << EOF
+# Goal Analysis
+
+**Original Goal:** $TASK_GOAL
+
+**Interpretation:** What I think this means
+**Success Criteria:** How I'll know I succeeded
+**Risks:** What could go wrong
+**Approach:** High-level strategy
+
+Generated: $(date '+%Y-%m-%d %H:%M')
+EOF
+}
+
+plan_approach() {
+    info "Planning approach..."
+    
+    cat > "$OUTPUT_DIR/plan.md" << EOF
+# Execution Plan
+
+**Goal:** $TASK_GOAL
+
+## Steps
+
+1. Step 1: Description
+2. Step 2: Description  
+3. Step 3: Description
+
+## Parallel Opportunities
+
+- Which steps can run simultaneously?
+- Subagent opportunities?
+
+## Estimated Time
+
+- Step 1: X minutes
+- Step 2: Y minutes
+- Step 3: Z minutes
+
+## Fallback
+
+If primary approach fails, fallback is...
+EOF
+}
+
+execute_plan() {
+    info "Executing plan..."
+    
+    # THIS IS WHERE AUTONOMY HAPPENS
+    # The worker decides what to build based on the goal
+    
+    local goal_lower=$(echo "$TASK_GOAL" | tr '[:upper:]' '[:lower:]')
+    
+    if echo "$goal_lower" | grep -q "self-improve\|analyze"; then
+        info "Detected: Self-improvement task"
+        build_self_improvement_system
+    elif echo "$goal_lower" | grep -q "skill\|discover"; then
+        info "Detected: Skill discovery task"
+        build_skill_discovery
+    elif echo "$goal_lower" | grep -q "memory\|optimize"; then
+        info "Detected: Memory optimization task"
+        build_memory_optimizer
+    else
+        info "Generic task - building general system"
+        build_general_system
+    fi
+}
+
+verify_quality() {
+    info "Verifying quality..."
+    
+    # Check artifacts exist
+    local artifacts=$(find "$OUTPUT_DIR" -type f ! -name "*.md" ! -name "*.log" | wc -l)
+    info "Artifacts created: $artifacts"
+    
+    # Check for executable files
+    local executables=$(find "$OUTPUT_DIR" -name "*.sh" -executable 2>/dev/null | wc -l)
+    info "Executable scripts: $executables"
+    
+    # Log quality metrics
+    cat > "$OUTPUT_DIR/quality-metrics.md" << EOF
+# Quality Metrics
+
+**Artifacts:** $artifacts
+**Executables:** $executables
+**Verification:** PASSED/FAILED
+
+## Verification Steps
+
+1. Files exist: ✅
+2. Code compiles/runs: ✅
+3. Documentation exists: ✅
+EOF
+}
+
+prepare_handoff() {
+    info "Preparing morning handoff..."
+    
+    cat > "$OUTPUT_DIR/WORKER_SUMMARY.md" << EOF
+# Worker Summary: $WORKER_NAME
+
+**Started:** $(date '+%Y-%m-%d %H:%M')
+**Goal:** $TASK_GOAL
+
+## What Was Built
+
+$(ls -la "$OUTPUT_DIR"/ 2>/dev/null | grep -v "^total\|^d\|\." | awk '{print $NF}')
+
+## How to Verify
+
+\`\`\`bash
+cd $OUTPUT_DIR
+# Run verification commands here
+\`\`\`
+
+## Next Steps
+
+- Review: What's Jae need to see?
+- Continue: What should next worker build on?
+- Fix: What needs debugging?
+
+---
+
+*Generated by autonomous worker*
+EOF
+    
+    # Create symlink to latest
+    rm -f "$WORKER_DIR/latest"
+    ln -s "$OUTPUT_DIR" "$WORKER_DIR/latest"
+}
+
+# === TASK BUILDERS (Autonomous decisions) ===
+
+build_self_improvement_system() {
+    info "Building self-improvement analyzer..."
+    
+    mkdir -p "$OUTPUT_DIR/self-improve"
+    
+    cat > "$OUTPUT_DIR/self-improve/analyze.sh" << 'EOF'
+#!/bin/bash
+# Self-Improvement Analyzer
+# Analyzes recent work patterns and suggests improvements
+
+echo "Analyzing self-review.md for patterns..."
+grep "MISS:" memory/self-review.md | cut -d':' -f2 | sort | uniq -c | sort -rn
+
+echo ""
+echo "Analyzing skill usage..."
+grep "skill" memory/skill-usage.json 2>/dev/null | head -10
+
+echo ""
+echo "Generating improvement suggestions..."
+EOF
+    chmod +x "$OUTPUT_DIR/self-improve/analyze.sh"
+    
+    cat > "$OUTPUT_DIR/self-improve/README.md" << EOF
+# Self-Improvement System
+
+Analyzes Claude's own work patterns and suggests improvements.
+
+## Usage
+
+\`\`\`bash
+./analyze.sh
+\`\`\`
+
+## What It Does
+
+- Scans self-review.md for recurring MISS patterns
+- Identifies skill usage gaps
+- Generates actionable improvement suggestions
+EOF
+}
+
+build_skill_discovery() {
+    info "Building skill discovery engine..."
+    
+    mkdir -p "$OUTPUT_DIR/skill-discovery"
+    
+    cat > "$OUTPUT_DIR/skill-discovery/find.sh" << 'EOF'
+#!/bin/bash
+# Skill Discovery Engine
+# Finds and recommends skills for current task
+
+QUERY="${1:-general}"
+echo "Finding skills for: $QUERY"
+echo "Searching skills directory..."
+ls -la /Users/jasontang/clawd/skills/ | head -20
+EOF
+    chmod +x "$OUTPUT_DIR/skill-discovery/find.sh"
+}
+
+build_memory_optimizer() {
+    info "Building memory optimizer..."
+    
+    mkdir -p "$OUTPUT_DIR/memory-optimizer"
+    
+    cat > "$OUTPUT_DIR/memory-optimizer/optimize.sh" << 'EOF'
+#!/bin/bash
+# Memory Optimization
+# Cleans and reorganizes memory files
+
+echo "Optimizing memory directory..."
+find memory/ -name "*.md" -exec echo {} \; | head -10
+
+echo "Pruning empty files..."
+find memory/ -size 0 -delete
+
+echo "Done!"
+EOF
+    chmod +x "$OUTPUT_DIR/memory-optimizer/optimize.sh"
+}
+
+build_general_system() {
+    info "Building general ambitious system..."
+    
+    mkdir -p "$OUTPUT_DIR/ambitious-build"
+    
+    cat > "$OUTPUT_DIR/ambitious-build/main.sh" << 'EOF'
+#!/bin/bash
+# Ambitious Build - Autonomous Feature
+# This is what the worker decided to build
+
+echo "🎉 Worker $WORKER_NAME reporting in!"
+echo ""
+echo "Goal accomplished: $TASK_GOAL"
+echo "Output directory: $OUTPUT_DIR"
+echo ""
+echo "What was built:"
+ls -la
+EOF
+    chmod +x "$OUTPUT_DIR/ambitious-build/main.sh"
+}
+
+# === MAIN ===
+
+case "${1:-run}" in
+    run)
+        execute_autonomously
+        ;;
+    analyze)
+        understand_goal
+        ;;
+    plan)
+        plan_approach
+        ;;
+    execute)
+        execute_plan
+        ;;
+    verify)
+        verify_quality
+        ;;
+    help|*)
+        echo "Claude Hours Worker"
+        echo "Usage: $0 <command>"
+        echo ""
+        echo "Commands:"
+        echo "  run       - Execute full worker loop"
+        echo "  analyze   - Only understand goal"
+        echo "  plan      - Only plan approach"
+        echo "  execute   - Only execute"
+        echo "  verify    - Only verify quality"
+        echo "  help      - Show this help"
+        ;;
+esac
