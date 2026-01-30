@@ -301,6 +301,7 @@ You have 3 CLI agents. Use strategically:
 | **Kimi Code** | `kimi -p "<prompt>"` | General tasks, research |
 | **Codex** | `codex -p "<prompt>"` | Coding, implementation |
 | **Claude Code** | `claude -p "<prompt>"` | Complex reasoning |
+| **Gemini** | `gemini -p "<prompt>"` | Research, analysis (NEW!) |
 
 **Compare providers:**
 ```python
@@ -310,6 +311,123 @@ orchestrator.compare_providers("task")  # Returns fastest
 **When to parallelize:**
 - Heavy coding + analysis → Codex for code, Kimi for research
 - See `workflows/codex-parallel-development.md`
+
+---
+
+## 🎛️ CLI Orchestration & System Control
+
+You can programmatically control this system via CLI tools. This enables autonomous overnight development.
+
+### System Control Commands
+
+```bash
+# === CLAUDE HOURS AUTONOMOUS SYSTEM ===
+./scripts/claude-hours-nightly.sh setup        # Start overnight (9 PM)
+./scripts/claude-hours-nightly.sh report       # Morning surprise report
+./scripts/claude-hours-nightly.sh kill         # Terminate all workers
+
+# === MULTI-AGENT ORCHESTRATION ===
+./scripts/claude-hours-orchestra.sh start [hours]   # Run orchestra
+./scripts/claude-hours-orchestra.sh status          # Check status
+./scripts/claude-hours-orchestra.sh spawn <id> <goal> <task>  # Spawn worker
+
+# === PRE-FLIGHT VALIDATION ===
+./scripts/claude-hours-enforcer.sh --start      # Validate + start
+
+# === MORNING DASHBOARD ===
+./scripts/claude-hours-report.sh                # What was built overnight
+
+# === STATUS ===
+./scripts/status-dashboard.sh                   # Full system check
+```
+
+### Subagent Spawning
+
+**For parallel task execution:**
+```bash
+# Spawn independent subagents
+sessions_spawn --task "task description" --label "worker-1" --model "claude"
+sessions_spawn --task "task description" --label "worker-2" --model "claude"
+
+# Check status
+sessions_list
+
+# Send message to subagent
+sessions_send --sessionKey "worker-1" --message "Update me"
+```
+
+### Claude Hours Worker Template
+
+Workers execute autonomously with goals:
+
+```bash
+# Worker environment
+export WORKER_NAME="claude-hour-1"
+export TASK_GOAL="Build self-improvement system"
+export WORKER_DIR="./worker-output"
+
+# Execute worker
+./scripts/claude-hours-worker.sh run
+```
+
+### Git Workflow for Autonomous Build
+
+```bash
+# Create feature branch
+git checkout -b nightly/$(date +%Y-%m-%d)-$(task-slug)
+
+# Work happens here...
+
+# Commit with evidence
+git add -A
+git commit -m "feat: $(what was built)
+
+Evidence: path/to/artifact
+Verification: ./verify.sh
+Learned: pattern from self-review.md"
+
+# Push for morning review
+git push origin nightly/$(date +%Y-%m-%d)-$(task-slug)
+```
+
+### Process Management
+
+```bash
+# Check running processes
+ps aux | grep -E "autonomous|orchestra|worker" | grep -v grep
+
+# Kill stuck processes
+pkill -9 -f "autonomous-loop"
+pkill -9 -f "orchestra"
+pkill -9 -f "worker.*sh"
+
+# Check logs
+tail -50 .claude/logs/orchestra.log
+tail -50 .claude/logs/autonomous-loop.log
+```
+
+### Quality Verification
+
+```bash
+# Verify artifacts exist
+find .claude/orchestra -type f ! -name "*.log" | wc -l
+
+# Check executables work
+find .claude/orchestra -name "*.sh" -executable -exec {} --help \; 2>/dev/null | grep -c "usage\|help"
+
+# Run quality check
+bash .claude/orchestra/quality-check.sh
+```
+
+### When to Use CLI Control
+
+| Scenario | Command |
+|----------|---------|
+| Start overnight development | `./scripts/claude-hours-nightly.sh setup` |
+| Check what was built | `./scripts/claude-hours-report.sh` |
+| Multiple parallel tasks | `sessions_spawn` for each |
+| Kill stuck processes | `pkill -9 -f autonomous-loop` |
+| Morning status check | `./scripts/claude-hours-orchestra.sh status` |
 
 ---
 
@@ -365,9 +483,44 @@ Pre-built multi-skill workflows in `workflows/`:
 
 ## ⏰ Claude Hours (9 PM - 8 AM CST)
 
-**Autonomous operation during off-hours.**
+**Autonomous operation during off-hours - Claude wakes you up with surprises.**
 
-### Two-Phase Loop
+### Autonomous System v2.0
+
+```bash
+# At 9 PM - Start overnight development
+./scripts/claude-hours-nightly.sh setup
+
+# In the morning - See what was built
+./scripts/claude-hours-nightly.sh report
+
+# Or use the full orchestra
+./scripts/claude-hours-orchestra.sh start 11  # 11 hours
+```
+
+### What Happens Overnight
+
+1. **21:00** - Clean slate, generate ambitious goals
+2. **22:00-07:00** - 4 workers build in parallel
+   - Worker 1: Self-improvement system
+   - Worker 2: Skill discovery engine
+   - Worker 3: Memory optimizer
+   - Worker 4: Quality enforcer
+3. **08:00** - Morning report with surprises
+
+### Morning Dashboard
+
+```bash
+# Quick summary
+./scripts/claude-hours-report.sh
+
+# Detailed report
+./scripts/claude-hours-nightly.sh report
+```
+
+### Two-Phase Loop (Legacy)
+
+If using autonomous loop instead of orchestra:
 
 **Phase 1: Evening Review (9 PM - 10 PM)**
 1. Read `memory/YYYY-MM-DD.md` files from last 7 days
@@ -398,7 +551,7 @@ Pre-built multi-skill workflows in `workflows/`:
 ./scripts/claude-hours-viewer.sh today
 ./scripts/claude-hours-viewer.sh weekly
 
-# Autonomous loop
+# Autonomous loop (legacy)
 ./scripts/claude-autonomous-loop-simple.sh init "System Improvements"
 ./scripts/claude-autonomous-loop-simple.sh run "Research"
 ./scripts/claude-autonomous-loop-simple.sh finalize
