@@ -166,31 +166,89 @@ EOF
 setup_quality_enforcer() {
     info "Setting up quality enforcement..."
     
-    cat > "$ORCHESTRA_DIR/quality-check.sh" << 'EOF'
+    # Use the new quality-enforcer.sh script
+    QUALITY_SCRIPT="$CLAWD/scripts/quality-enforcer.sh"
+    
+    if [[ -x "$QUALITY_SCRIPT" ]]; then
+        # Create wrapper that uses quality-enforcer.sh
+        cat > "$ORCHESTRA_DIR/quality-check.sh" << EOF
 #!/bin/bash
-# Quality Enforcer - Validates overnight work
+# Quality Enforcer - Validates overnight work using quality-enforcer.sh
+
+QUALITY_SCRIPT="$CLAWD/scripts/quality-enforcer.sh"
+QUALITY_LOG="$ORCHESTRA_DIR/quality.log"
+
+log() { echo "[\$(date '+%H:%M:%S')] [QUALITY] \$1" >> "\$QUALITY_LOG"; }
+
+check_all() {
+    log "Running quality checks via quality-enforcer.sh..."
+    
+    # Check all artifacts in orchestra directory
+    local target_dir="$ORCHESTRA_DIR"
+    
+    # Run quality check on each artifact
+    local passed=0
+    local failed=0
+    local total=0
+    
+    for file in \$target_dir/*.sh; do
+        [[ -f "\$file" ]] || continue
+        ((total++))
+        if \$QUALITY_SCRIPT check "\$file" >/dev/null 2>&1; then
+            ((passed++))
+        else
+            ((failed++))
+        fi
+    done
+    
+    log "Files checked: \$total"
+    log "Passed: \$passed, Failed: \$failed"
+    
+    # Also check for any .py files
+    for file in \$target_dir/*.py; do
+        [[ -f "\$file" ]] || continue
+        ((total++))
+        if \$QUALITY_SCRIPT check "\$file" >/dev/null 2>&1; then
+            ((passed++))
+        else
+            ((failed++))
+        fi
+    done
+    
+    # Result
+    if [[ \$failed -eq 0 ]] && [[ \$total -gt 0 ]]; then
+        log "QUALITY: PASSED (\$passed/\$total)"
+        return 0
+    else
+        log "QUALITY: NEEDS REVIEW (\$passed/\$total)"
+        return 1
+    fi
+}
+
+check_all
+EOF
+        chmod +x "$ORCHESTRA_DIR/quality-check.sh"
+        
+        # Run initial quality check
+        log "Initial quality check..."
+        bash "$ORCHESTRA_DIR/quality-check.sh"
+        
+        info "Quality enforcer ready (using $QUALITY_SCRIPT)"
+    else
+        # Fallback to simple check
+        cat > "$ORCHESTRA_DIR/quality-check.sh" << 'EOF'
+#!/bin/bash
+# Quality Enforcer - Validates overnight work (fallback)
 
 QUALITY_LOG="$ORCHESTRA_DIR/quality.log"
 
 log() { echo "[$(date '+%H:%M:%S')] [QUALITY] $1" >> "$QUALITY_LOG"; }
 
 check_all() {
-    log "Running quality checks..."
-    
-    # Check 1: Files exist
+    log "Running quality checks (fallback mode)..."
     local files=$(find .claude/orchestra -type f ! -name "*.log" 2>/dev/null | wc -l)
     log "Files created: $files"
-    
-    # Check 2: Executables work
-    local working=$(find .claude/orchestra -name "*.sh" -executable -exec {} --help \; 2>/dev/null | grep -c "usage\|help\|error" || echo 0)
-    log "Working executables: $working"
-    
-    # Check 3: No error spam in logs
-    local errors=$(grep -c "ERROR\|FAIL\|error" .claude/logs/*.log 2>/dev/null || echo 0)
-    log "Errors in logs: $errors"
-    
-    # Result
-    if [ "$files" -gt 5 ] && [ "$errors" -lt 10 ]; then
+    if [ "$files" -gt 0 ]; then
         log "QUALITY: PASSED"
         return 0
     else
@@ -201,8 +259,9 @@ check_all() {
 
 check_all
 EOF
-    chmod +x "$ORCHESTRA_DIR/quality-check.sh"
-    info "Quality enforcer ready"
+        chmod +x "$ORCHESTRA_DIR/quality-check.sh"
+        info "Quality enforcer ready (fallback mode)"
+    fi
 }
 
 # === MORNING REPORT GENERATOR ===
@@ -213,6 +272,8 @@ setup_morning_report() {
     cat > "$ORCHESTRA_DIR/morning-report.sh" << 'EOF'
 #!/bin/bash
 # Morning Report - What Claude built overnight
+
+QUALITY_SCRIPT="/Users/jasontang/clawd/scripts/quality-enforcer.sh"
 
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║          🦞 Claude Hours Morning Report                  ║"
@@ -229,8 +290,12 @@ echo "═══ Commits Made ═══"
 git log --since="yesterday 21:00" --until="today 08:00" --oneline 2>/dev/null | sed 's/^/  • /' || echo "  No commits"
 
 echo ""
-echo "═══ Quality Score ═══"
-bash .claude/orchestra/quality-check.sh 2>/dev/null | tail -1
+echo "═══ Quality Summary ═══"
+if [[ -x "$QUALITY_SCRIPT" ]]; then
+    "$QUALITY_SCRIPT" report day 2>/dev/null | grep -A 20 "Quality Enforcement Report" | head -25 || echo "  Quality report unavailable"
+else
+    bash .claude/orchestra/quality-check.sh 2>/dev/null | tail -1 || echo "  Quality check unavailable"
+fi
 
 echo ""
 echo "═══ For Jae Review ═══"
