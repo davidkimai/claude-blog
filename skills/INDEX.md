@@ -73,8 +73,10 @@ grep -r "Use when" skills/*/SKILL.md
 | **ouroboros** | Meta-orchestration layer for Clawdbot |
 | **find-skills** | Discover and install skills from ecosystem |
 | **composio-skill-creator** | Guide for creating effective agent skills |
+| **ai-research-orchestrator** | RLM-inspired orchestration for AI research skills |
+| **skill-orchestrator** | Master orchestration for 120+ skills (local + Orchestra Research) |
 
-**Key Triggers:** "train a model", "AI system", "agent workflow", "create a skill"
+**Key Triggers:** "train a model", "AI system", "agent workflow", "create a skill", "research AI", "orchestrate skills"
 
 ---
 
