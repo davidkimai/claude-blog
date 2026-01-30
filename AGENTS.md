@@ -12,8 +12,131 @@ Every session, in order:
 2. **Read `memory/self-review.md`** — Learn from recent mistakes
 3. **Read `memory/YYYY-MM-DD.md`** — Recent context
 4. **If main session:** Read `MEMORY.md` — Long-term continuity
+5. **Read `01_thinking/notes/_agent-workspace/session-log.md`** — Current session context
+6. **Check `01_thinking/notes/_agent-workspace/patterns.md`** — Working patterns
 
 **Quick win:** Run `./scripts/status-dashboard.sh` for system visibility.
+
+---
+
+## 🧠 Agent Workspace (Second Brain)
+
+This vault is Claude's "second brain" — a persistent, agent-operable thinking system.
+
+### Purpose
+
+- **Persist context** between sessions
+- **Document patterns** that work
+- **Leave breadcrumbs** for future agents
+- **Learn from experience** through systematic reflection
+
+### Structure
+
+```
+01_thinking/notes/_agent-workspace/
+├── README.md              # Entry point: explains workspace purpose
+├── session-log.md         # Track current session, past sessions
+├── patterns.md            # Document what works (workflows, prompts, interactions)
+├── fixes.md               # Record solutions to problems
+├── workflows.md           # Document new/improved workflows
+├── context-cache.md       # Persistent useful context
+└── spatial-instructions.md # Instructions left where they belong
+
+01_thinking/notes/_templates/agent/
+├── INDEX.md               # Template catalog
+├── session-log-template.md
+├── patterns-template.md
+├── fixes-template.md
+└── workflows-template.md
+```
+
+### How to Use as Second Brain
+
+#### 1. Start Session
+```bash
+# Read session log to understand current state
+cat 01_thinking/notes/_agent-workspace/session-log.md
+
+# Check patterns for relevant approaches
+cat 01_thinking/notes/_agent-workspace/patterns.md
+```
+
+#### 2. During Work - Leave Traces
+When you discover something useful:
+
+- **Pattern found?** → Add to `patterns.md`
+- **Problem fixed?** → Add to `fixes.md`
+- **New workflow?** → Add to `workflows.md`
+- **Learn about a context?** → Leave in that context's file (spatial editing)
+
+#### 3. End Session - Consolidate
+Update `session-log.md` with:
+- What was accomplished
+- Patterns discovered
+- Fixes found
+- Open questions
+- Next session priorities
+
+#### 4. Weekly - Review & Update
+```bash
+./scripts/moc-updater.sh --check
+./scripts/moc-updater.sh --update
+```
+
+### Key Principles (from Heinrich's Thinking OS)
+
+1. **Selective Context** - Only keep what matters in context. Claude decides what enters context, not everything.
+2. **Spatial Editing** - Leave instructions where they belong. When you learn something about a context, leave it in that context's file.
+3. **Composability** - Notes should stand alone. Link to them naturally.
+4. **Network Knowledge** - Relationships matter more than content. High inbound links = valuable insight.
+5. **Claim-Based Titles** - Name notes like arguments: "this pattern works" not "thoughts on patterns"
+
+### Example: Adding a Pattern
+
+```markdown
+### Pattern: Subagent Multi-Task
+**When:** Multiple independent tasks
+**What:** Dispatch fresh subagent per task
+**Why:** Fresh context, parallel-safe, quality gates
+
+**Example:**
+```bash
+sessions_spawn --task "task 1" --label "impl-1"
+```
+
+**Related:** [[ops-workflows]]
+```
+
+### Example: Recording a Fix
+
+```markdown
+### Fix: Bash Process Substitution
+**Problem:** `for` loop with `2>/dev/null` syntax error
+**Solution:** Use `shopt -s nullglob` instead
+**When:** Need to handle empty globs safely
+```
+
+### Workflow Integration
+
+| Phase | Action |
+|-------|--------|
+| Startup | Read `session-log.md`, `patterns.md` |
+| During work | Leave notes, document patterns |
+| End of day | Update `session-log.md` |
+| Weekly | Run `moc-updater.sh` to sync with MOCs |
+
+### MOC Integration
+
+The agent workspace syncs with MOCs via `scripts/moc-updater.sh`:
+
+- MOCs provide structure and navigation
+- Agent workspace provides operational context
+- qmd provides instant search across both
+
+**Related MOCs:**
+- [[01_thinking/mocs/index|Master MOC]]
+- [[01_thinking/mocs/context-engineering|Context Engineering MOC]]
+- [[01_thinking/mocs/ops-workflows|Operations MOC]]
 
 ---
 
