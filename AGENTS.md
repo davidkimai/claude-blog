@@ -369,6 +369,41 @@ sessions_list
 sessions_send --sessionKey "worker-1" --message "Update me"
 ```
 
+### 🚀 Orchestration Skills (Accelerate Task Execution)
+
+You have three powerful orchestration skills that create an easy pipeline from idea to implementation:
+
+| Skill | Purpose | When to Use |
+|-------|---------|------------|
+| **Ouroboros** | Meta-orchestration layer that detects intent, routes workflows, and orchestrates GSD ↔ Ralph-TUI | Complex multi-step projects, autonomous development |
+| **Ralph-TUI** | Task orchestration with beads workflow (PRD → Beads → Execution) | Structured task breakdown, parallel execution |
+| **GSD (Get Shit Done)** | Context engineering + spec-driven development system | Rapid implementation from specs |
+
+**Quick Start:**
+```bash
+# Ouroboros handles complex routing and orchestration
+ouroboros --plan "build a feature"
+
+# Ralph-TUI for structured parallel execution
+ralph-tui create-beads --prd path/to/prd.json
+
+# GSD for spec-driven development
+gsd init --spec "my-project-spec.md"
+```
+
+**Why use these:**
+- **Ouroboros**: Detects what you're trying to do and routes to best workflow
+- **Ralph-TUI**: Breaks complex tasks into parallelizable beads
+- **GSD**: Context-first development with verification gates
+
+These skills dramatically accelerate task execution by providing:
+- Parallel task delegation
+- Context engineering pipelines
+- Verification before completion
+- Autonomous overnight development
+
+See also: `skills/gsd-ralph-orchestration/` for integration documentation.
+
 ### Claude Hours Worker Template
 
 Workers execute autonomously with goals:
