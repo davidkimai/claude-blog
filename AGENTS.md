@@ -272,6 +272,66 @@ sessions_history --sessionKey "worker-2"
 
 ---
 
+## 🔧 CLI Providers Orchestration
+
+Use CLI agents strategically for different task types:
+
+| Provider | Command | Best For |
+|----------|---------|----------|
+| **Kimi Code** | `kimi -p "<prompt>"` | General tasks, research |
+| **Codex** | `codex -p "<prompt>"` | Coding, implementation |
+| **Claude Code** | `claude -p "<prompt>"` | Complex reasoning |
+| **Gemini** | `gemini -p "<prompt>"` | Research, analysis |
+
+**When to parallelize:**
+- Heavy coding + analysis → Codex for code, Kimi for research
+- See `workflows/codex-parallel-development.md`
+
+---
+
+## 🚀 Orchestration Skills
+
+Three powerful skills for accelerating task execution:
+
+| Skill | Purpose | When to Use |
+|-------|---------|------------|
+| **Ouroboros** | Meta-orchestration, intent detection, workflow routing | Complex multi-step projects |
+| **Ralph-TUI** | Task orchestration with beads workflow (PRD → Beads → Execution) | Structured task breakdown |
+| **GSD** | Context engineering + spec-driven development | Rapid implementation from specs |
+
+**Quick Start:**
+```bash
+ouroboros --plan "build a feature"
+ralph-tui create-beads --prd path/to/prd.json
+gsd init --spec "my-project-spec.md"
+```
+
+See: `skills/gsd-ralph-orchestration/` for integration docs.
+
+---
+
+## 🐝 Agent Swarm Templates
+
+Pre-built parallel execution patterns:
+
+| Template | Role | Use When |
+|----------|------|----------|
+| `ai-researcher` | Research/Synthesis | Literature review, paper analysis |
+| `code-specialist` | Coding/Debugging | Build features, fix bugs |
+| `documenter` | Documentation | Write docs, notes |
+| `analyst` | Data Analysis | Pattern recognition, stats |
+| `fact-checker` | Verification | Validate claims, QA |
+
+**Parallel execution:**
+```python
+orchestrator.execute_parallel_swarm([
+    {"template": "ai-researcher", "task": "Research topic"},
+    {"template": "code-specialist", "task": "Implement feature"},
+])
+```
+
+---
+
 ## 🎛️ CLI Orchestration & System Control
 
 ### Claude Hours Commands
@@ -448,6 +508,32 @@ During autonomous operation:
 ./scripts/claude-hours-nightly.sh report
 ```
 
+### Process Management
+
+```bash
+# Check running processes
+ps aux | grep -E "autonomous|orchestra|worker" | grep -v grep
+
+# Kill stuck processes
+pkill -9 -f "autonomous-loop"
+pkill -9 -f "orchestra"
+pkill -9 -f "worker.*sh"
+
+# Check logs
+tail -50 .claude/logs/orchestra.log
+tail -50 .claude/logs/autonomous-loop.log
+```
+
+### When to Use CLI Control
+
+| Scenario | Command |
+|----------|---------|
+| Start overnight development | `./scripts/claude-hours-nightly.sh setup` |
+| Check what was built | `./scripts/claude-hours-report.sh` |
+| Multiple parallel tasks | `sessions_spawn` for each |
+| Kill stuck processes | `pkill -9 -f autonomous-loop` |
+| Morning status check | `./scripts/claude-hours-orchestra.sh status` |
+
 ---
 
 ## 📚 Key Files Reference
@@ -493,6 +579,30 @@ During autonomous operation:
 - **Claude Hours output** — Draft PRs created, learnings committed
 - **Meta-skill improvement** — Pattern confidence increasing over time
 - **UAS Score trajectory** — Improving toward L5 autonomy
+
+---
+
+## 🚀 Quick Reference Card
+
+```bash
+# MINIMUM STARTUP (2 minutes)
+cat memory/self-review.md | head -20
+./scripts/claude-hours-supermemory.sh auto-recall "current session" 2>/dev/null
+qmd "relevant topic" --limit 5 2>/dev/null
+cat 01_thinking/notes/_agent-workspace/session-log.md
+./scripts/status-dashboard.sh
+
+# COMMON TASKS
+qmd "pattern"                                            # Search vault
+supermemory remember "fact"                              # Save to memory
+supermemory recall "query"                               # Search memories
+./scripts/claude-nightly-builder.sh list                 # See self-build options
+
+# SYSTEM STATUS
+./scripts/status-dashboard.sh                            # Full system check
+cat .claude/state/cycle.txt                              # Current cycle
+cat memory/nightly-builds.md                             # Recent builds
+```
 
 ---
 
