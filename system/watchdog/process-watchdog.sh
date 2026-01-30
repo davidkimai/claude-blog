@@ -89,16 +89,13 @@ supervise() {
         # Check circuit breaker before any action
         if ! check_circuit_breaker; then
             log "System halted - circuit breaker active"
-            # Send alert (one-time)
-            if [ -f "$CLAWD/scripts/claude-hours-notifier.sh" ]; then
-                "$CLAWD/scripts/claude-hours-notifier.sh" cli "🚨 Claude Hours CIRCUIT BREAKER TRIPPED
-
-Process failed $CIRCUIT_BREAKER_THRESHOLD+ times consecutively.
-
-Check logs at: /Users/jasontang/clawd/.claude/logs/
-
-Manual intervention required to restart."
-            fi
+            # Send alert (one-time) - DISABLED per Jae request
+            # if [ -f "$CLAWD/scripts/claude-hours-notifier.sh" ]; then
+            #     "$CLAWD/scripts/claude-hours-notifier.sh" cli "🚨 Claude Hours CIRCUIT BREAKER TRIPPED
+            # Process failed $CIRCUIT_BREAKER_THRESHOLD+ times consecutively.
+            # Check logs at: /Users/jasontang/clawd/.claude/logs/
+            # Manual intervention required to restart."
+            # fi
             exit 1
         fi
         

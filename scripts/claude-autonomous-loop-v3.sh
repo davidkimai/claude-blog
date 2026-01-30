@@ -113,9 +113,10 @@ finalize_session() {
     
     log "Finalizing session after $tasks_done tasks"
     
-    if [ -x "$NOTIFIER" ]; then
-        "$NOTIFIER" notify_complete "$CYCLE" "$tasks_done" "$focus" "$duration" "$outputs" "$start_time" "$end_time"
-    fi
+    # Notifications disabled per Jae request (2026-01-30)
+    # if [ -x "$NOTIFIER" ]; then
+    #     "$NOTIFIER" notify_complete "$CYCLE" "$tasks_done" "$focus" "$duration" "$outputs" "$start_time" "$end_time"
+    # fi
     
     if $VOICE_ENABLED; then
         $VOICE complete "$tasks_done tasks completed"
