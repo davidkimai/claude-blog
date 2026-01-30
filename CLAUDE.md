@@ -95,7 +95,67 @@ Check periodically:
 
 ---
 
-## ⏰ Claude Hours Session Viewer
+## 🧠 Vault Philosophy (Obsidian + qmd)
+
+This workspace is a **thinking vault** — Claude Code operates it as an extension of your mind.
+
+### Core Principles
+
+1. **Depth over breadth** — Quality over speed. Tokens are free. Excellence matters.
+2. **Composability** — Notes should stand alone. Link to them naturally: `because [[quality is the hard part]]...`
+3. **Network knowledge** — Relationships matter more than individual notes. High inbound links = valuable insight.
+4. **Claim-based titles** — Name notes like arguments: "quality is the hard part" not "thoughts on quality"
+
+### Folder Structure
+
+```
+clawd/
+├── 00_inbox/           # Capture zone, zero friction
+├── 01_thinking/        # Your notes and synthesis
+├── 02_reference/       # External knowledge, sources
+├── 03_creating/        # Drafts in progress
+├── 04_published/       # Blog content (symlinked to kim-blog/content)
+├── 05_archive/         # Inactive content
+├── 06_system/          # Templates and scripts
+└── AGENTS.md           # Strategic operating manual
+```
+
+### qmd Integration (Missing Layer)
+
+**qmd** provides instant search across the vault — acts as your "index" and "MOC" (Map of Content).
+
+```bash
+# Search workspace
+qmd search "query"              # clawd collection
+qmd search "query" -c blog      # blog collection only
+
+# Semantic search (requires embeddings)
+qmd vsearch "conceptual query"
+
+# Update index after changes
+qmd update
+```
+
+**Workflow:**
+1. Claude starts → uses `qmd search` to orient
+2. Finds relevant notes → follows links → builds understanding
+3. Discovers connections → suggests where things belong
+4. Creates links with context
+
+### Publishing Workflow
+
+To publish to blog (`kim-blog`):
+
+1. Create/edit in `04_published/`
+2. File auto-appears in `kim-blog/content/` (symlink)
+3. Git push → Vercel auto-deploys
+
+### Obsidian Integration
+
+Open `/Users/jasontang/clawd` in Obsidian as your vault:
+- Browse notes spatially
+- Use graph view for exploration
+- Edit manually when preferred
 
 Track progress over time with timestamps.
 
