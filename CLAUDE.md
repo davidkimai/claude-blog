@@ -32,6 +32,8 @@
 2. Read `memory/conversation-summary.md` (if exists)
 3. Read `memory/YYYY-MM-DD.md` (today/yesterday)
 4. Read `MEMORY.md` (curated long-term)
+5. Check `01_thinking/notes/_agent-workspace/session-log.md` for recent context
+6. Review `01_thinking/notes/_agent-workspace/patterns.md` for working patterns
 
 ## Subagent Spawning
 
@@ -156,6 +158,34 @@ Open `/Users/jasontang/clawd` in Obsidian as your vault:
 - Browse notes spatially
 - Use graph view for exploration
 - Edit manually when preferred
+
+### Agent Workspace
+
+Claude has an operational workspace in the vault for persistent context:
+
+**Location:** `01_thinking/notes/_agent-workspace/`
+
+**Key Files:**
+- `session-log.md` - Track current session context
+- `patterns.md` - Document working patterns
+- `fixes.md` - Record solutions to problems
+- `workflows.md` - Document workflows
+- `context-cache.md` - Persistent useful context
+- `spatial-instructions.md` - Instructions left where they belong
+
+**Templates:** `01_thinking/notes/_templates/agent/`
+- `session-log-template.md`
+- `patterns-template.md`
+- `fixes-template.md`
+- `workflows-template.md`
+
+**Workflow:**
+1. Start session → Check `session-log.md`
+2. During work → Leave notes in relevant files
+3. End session → Update `session-log.md` with key learnings
+4. Weekly → Review patterns, update MOCs via `moc-updater.sh`
+
+**Spatial Editing Pattern:** Leave instructions where they belong. When you learn something about a context, document it in that context's file.
 
 Track progress over time with timestamps.
 
