@@ -178,12 +178,12 @@ notify_admin() {
     local message="$1"
     local severity="${2:-info}"
     
-    # Telegram notification
-    if [ -x "$CLAWD/scripts/claude-hours-notifier.sh" ]; then
-        "$CLAWD/scripts/claude-hours-notifier.sh" cli "$severity" "$message" "$(date '+%H:%M')"
-    fi
+    # Telegram notifications DISABLED per Jae request (2026-01-30)
+    # if [ -x "$CLAWD/scripts/claude-hours-notifier.sh" ]; then
+    #     "$CLAWD/scripts/claude-hours-notifier.sh" cli "$severity" "$message" "$(date '+%H:%M')"
+    # fi
     
-    log "Notification sent: $message"
+    log "Notification (disabled): $message"
 }
 
 # === DAILY HEALTH REPORT ===
