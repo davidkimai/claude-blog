@@ -1,0 +1,187 @@
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.videoWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+.placeholderContent {
+  text-align: center;
+  color: white;
+}
+
+.placeholderContent p {
+  margin: 8px 0 0;
+}
+
+.host {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.liveBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.viewerBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  padding: 40px 16px 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.controls.visible {
+  opacity: 1;
+}
+
+.controlsBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.controlBtn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.controlBtn:hover {
+  transform: scale(1.1);
+}
+
+.controlBtn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.volumeControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volumeSlider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.streamInfo {
+  flex: 1;
+  color: white;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.host {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 4px 0 0;
+}
+
+.leaveBtn {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.leaveBtn:hover {
+  background: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .controlsBar {
+    gap: 8px;
+  }
+
+  .volumeControl {
+    display: none;
+  }
+
+  .volumeSlider {
+    display: none;
+  }
+
+  .title {
+    font-size: 0.875rem;
+  }
+}
