@@ -1,0 +1,30 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+.count {
+  font-weight: 600;
+  color: #111827;
+}
+
+.label {
+  color: #6b7280;
+}
+
+/* Animation for count changes */
+.animated .count {
+  transition: transform 0.2s ease;
+}
+
+.animated .count:active {
+  transform: scale(1.1);
+}
