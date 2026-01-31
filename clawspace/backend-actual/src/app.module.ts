@@ -3,8 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsModule } from './posts/posts.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { HealthModule } from './health/health.module';
 
 // Import entities for TypeORM
 import { Post } from './posts/entities/post.entity';
@@ -27,8 +25,6 @@ import { User } from './users/entities/user.entity';
     PostsModule,
     CommunitiesModule,
     UsersModule,
-    AuthModule,
-    HealthModule,
   ],
 })
 export class AppModule {}
